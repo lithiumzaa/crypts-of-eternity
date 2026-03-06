@@ -1,0 +1,3734 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRYPTS OF ETERNITY</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+      :root {
+        --bg: #0a0a0f;
+        --panel: #12121a;
+        --border: #2a2a3a;
+        --gold: #f5c518;
+        --red: #e84040;
+        --green: #3ecf4a;
+        --blue: #4a9eff;
+        --purple: #a855f7;
+        --cyan: #22d3ee;
+        --orange: #fb923c;
+        --text: #e8e8f0;
+        --dim: #6a6a8a;
+        --wall: #1a1a2e;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        image-rendering: pixelated;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Press Start 2P", monospace;
+        font-size: 12px;
+        height: 100vh;
+        overflow: hidden;
+        user-select: none;
+      }
+
+      #title-screen {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        gap: 16px;
+      }
+      #title-screen h1 {
+        font-size: 26px;
+        color: var(--gold);
+        text-shadow:
+          0 0 24px #f5c51888,
+          4px 4px 0 #7a5e08;
+        animation: flicker 3s infinite;
+      }
+      .title-btns {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .tbtn {
+        padding: 10px 22px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 13px;
+        cursor: pointer;
+        border: 2px solid var(--border);
+        background: var(--wall);
+        color: var(--text);
+        transition: all 0.15s;
+      }
+      .tbtn:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .tbtn.primary {
+        background: var(--gold);
+        color: #000;
+        border-color: var(--gold);
+        animation: pulse 1s infinite;
+      }
+      .tbtn.primary:hover {
+        background: #fff;
+      }
+      #saved-info {
+        font-size: 10px;
+        color: var(--green);
+        min-height: 18px;
+      }
+
+      #game-ui {
+        display: none;
+        width: 100vw;
+        height: 100vh;
+        flex-direction: row;
+      }
+      #game-ui.active {
+        display: flex;
+      }
+
+      #left-panel,
+      #right-panel {
+        width: 220px;
+        min-width: 220px;
+        background: var(--panel);
+        padding: 7px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      #left-panel {
+        border-right: 3px solid var(--border);
+      }
+      #right-panel {
+        border-left: 3px solid var(--border);
+      }
+      .ptitle {
+        font-size: 10px;
+        color: var(--gold);
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 3px;
+        margin-bottom: 3px;
+        text-align: center;
+        letter-spacing: 1px;
+        flex-shrink: 0;
+      }
+      .srow {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .slabel {
+        font-size: 10px;
+        color: var(--dim);
+        display: flex;
+        justify-content: space-between;
+      }
+      .barbg {
+        background: #1a1a2e;
+        height: 7px;
+        border: 1px solid var(--border);
+      }
+      .barfill {
+        height: 100%;
+        transition: width 0.3s;
+      }
+      .hpf {
+        background: var(--red);
+      }
+      .mpf {
+        background: var(--blue);
+      }
+      .xpf {
+        background: var(--purple);
+      }
+      .sgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+      }
+      .sbox {
+        background: var(--wall);
+        border: 1px solid var(--border);
+        padding: 3px;
+        text-align: center;
+        font-size: 9px;
+        cursor: help;
+      }
+      .sbox .sv {
+        color: var(--cyan);
+        font-size: 13px;
+        display: block;
+        margin-top: 2px;
+      }
+
+      /* ── SCROLLABLE INVENTORY ── */
+      #inv-scroll {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid var(--border);
+        padding: 2px;
+        flex-shrink: 0;
+      }
+      #inv-scroll::-webkit-scrollbar {
+        width: 4px;
+      }
+      #inv-scroll::-webkit-scrollbar-track {
+        background: #0a0a0f;
+      }
+      #inv-scroll::-webkit-scrollbar-thumb {
+        background: var(--gold);
+        border-radius: 2px;
+      }
+      #inv-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+      }
+
+      .islot {
+        aspect-ratio: 1;
+        background: var(--wall);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        font-size: 18px;
+        transition: border-color 0.15s;
+      }
+      .islot:hover {
+        border-color: var(--gold);
+      }
+      .islot.eq {
+        border-color: var(--green);
+      }
+      .islot.emp {
+        opacity: 0.25;
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .rdot {
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+      }
+      .icnt {
+        position: absolute;
+        bottom: 1px;
+        right: 2px;
+        font-size: 9px;
+        color: var(--gold);
+      }
+      .panel-btn {
+        width: 100%;
+        padding: 6px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 10px;
+        cursor: pointer;
+        border: 2px solid var(--border);
+        background: var(--wall);
+        color: var(--text);
+        margin-top: 3px;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .panel-btn:hover {
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+      .panel-btn.shop-btn {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .panel-btn.shop-btn:hover {
+        background: var(--gold);
+        color: #000;
+      }
+
+      #center {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: var(--bg);
+      }
+      #hud-top {
+        background: var(--panel);
+        border-bottom: 3px solid var(--border);
+        padding: 5px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      #map-wrap {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+      }
+      #game-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+      }
+      #mm-canvas {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        border: 2px solid var(--border);
+      }
+      #hotbar {
+        background: var(--panel);
+        border-top: 2px solid var(--border);
+        padding: 5px;
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .hk {
+        width: 56px;
+        height: 56px;
+        background: var(--wall);
+        border: 2px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 20px;
+        position: relative;
+        transition: border-color 0.1s;
+      }
+      .hk:hover {
+        border-color: var(--cyan);
+      }
+      .hk.oncd {
+        opacity: 0.5;
+      }
+      .hklbl {
+        font-size: 9px;
+        color: var(--dim);
+        position: absolute;
+        bottom: 1px;
+        right: 2px;
+      }
+      .hkname {
+        font-size: 8px;
+        color: var(--dim);
+        position: absolute;
+        top: 1px;
+        left: 0;
+        right: 0;
+        text-align: center;
+      }
+      .cdov {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--cyan);
+      }
+      #hint {
+        background: var(--panel);
+        border-top: 2px solid var(--border);
+        padding: 4px 8px;
+        font-size: 9px;
+        color: var(--dim);
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+
+      #clog {
+        flex: 1;
+        background: var(--wall);
+        border: 1px solid var(--border);
+        padding: 4px;
+        overflow-y: auto;
+        font-size: 10px;
+        line-height: 2;
+        max-height: 240px;
+        min-height: 40px;
+      }
+      .le {
+        animation: fadeIn 0.2s;
+      }
+      .ldmg {
+        color: var(--red);
+      }
+      .lheal {
+        color: var(--green);
+      }
+      .lxp {
+        color: var(--purple);
+      }
+      .litem {
+        color: var(--gold);
+      }
+      .lsys {
+        color: var(--cyan);
+      }
+      .lwarn {
+        color: var(--orange);
+      }
+
+      #tip {
+        position: fixed;
+        background: var(--panel);
+        border: 2px solid var(--gold);
+        padding: 8px;
+        font-size: 10px;
+        line-height: 2.1;
+        pointer-events: none;
+        z-index: 200;
+        display: none;
+        min-width: 180px;
+        max-width: 260px;
+      }
+      .tipn {
+        font-size: 12px;
+        color: var(--gold);
+        margin-bottom: 4px;
+      }
+      .tipt {
+        color: var(--cyan);
+      }
+      .tips {
+        color: var(--green);
+      }
+      .tipd {
+        color: var(--dim);
+        margin-top: 3px;
+        font-size: 9px;
+        line-height: 1.8;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 150;
+      }
+      .overlay.open {
+        display: flex;
+      }
+      .obox {
+        background: var(--panel);
+        padding: 0;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: fadeIn 0.2s;
+      }
+      .obox-inner {
+        padding: 18px;
+      }
+      .oclose {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        font-size: 12px;
+        color: var(--dim);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: "Press Start 2P", monospace;
+      }
+      .oclose:hover {
+        color: var(--red);
+      }
+
+      #ipop .obox {
+        border: 3px solid var(--gold);
+        min-width: 220px;
+        position: relative;
+      }
+      #ipop h3 {
+        font-size: 13px;
+        margin-bottom: 7px;
+      }
+      #ipop p {
+        font-size: 10px;
+        line-height: 2;
+        margin-bottom: 3px;
+        color: var(--text);
+      }
+      .pb {
+        padding: 6px 10px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 10px;
+        cursor: pointer;
+        border: 2px solid var(--border);
+        background: var(--wall);
+        color: var(--text);
+        transition: all 0.1s;
+      }
+      .pb:hover {
+        background: var(--border);
+      }
+      .pbg {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .pbr {
+        border-color: var(--red);
+        color: var(--red);
+      }
+      #pbtns {
+        display: flex;
+        gap: 5px;
+        margin-top: 9px;
+        flex-wrap: wrap;
+      }
+
+      #luov .obox {
+        border: 4px solid var(--gold);
+        text-align: center;
+      }
+      #sc-wrap {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .sc {
+        background: var(--wall);
+        border: 2px solid var(--border);
+        padding: 10px;
+        cursor: pointer;
+        text-align: center;
+        min-width: 75px;
+        transition: border-color 0.15s;
+      }
+      .sc:hover {
+        border-color: var(--gold);
+      }
+      .sci {
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+      .scn {
+        font-size: 10px;
+        color: var(--gold);
+        margin-bottom: 2px;
+      }
+      .scd {
+        font-size: 9px;
+        color: var(--dim);
+      }
+
+      #goov {
+        background: rgba(0, 0, 0, 0.92);
+      }
+      #goov .obox {
+        background: transparent;
+        border: none;
+        text-align: center;
+      }
+      .go-btns {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .go-btns button {
+        padding: 10px 18px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 11px;
+        cursor: pointer;
+        border: 2px solid var(--border);
+        background: var(--wall);
+        color: var(--text);
+      }
+      .go-btns button:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .go-btns .gbr {
+        border-color: var(--red);
+        color: var(--red);
+      }
+
+      #dtov {
+        background: #000;
+        flex-direction: column;
+        gap: 14px;
+        z-index: 160;
+      }
+      #dtov.open {
+        display: flex;
+      }
+
+      #shopov .obox {
+        border: 3px solid var(--gold);
+        min-width: 340px;
+        max-width: 580px;
+        width: 90vw;
+      }
+      .shop-header {
+        background: linear-gradient(90deg, #1a1200, #2a2000, #1a1200);
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 3px solid var(--gold);
+      }
+      .shop-header h2 {
+        font-size: 15px;
+        color: var(--gold);
+        text-shadow: 0 0 14px var(--gold);
+      }
+      .shop-gold {
+        font-size: 12px;
+        color: var(--gold);
+      }
+      .shop-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border);
+      }
+      .stab {
+        flex: 1;
+        padding: 6px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 10px;
+        cursor: pointer;
+        background: var(--wall);
+        color: var(--dim);
+        border: none;
+        border-right: 1px solid var(--border);
+        transition: all 0.1s;
+      }
+      .stab:last-child {
+        border-right: none;
+      }
+      .stab:hover {
+        color: var(--text);
+        background: #1e1e2e;
+      }
+      .stab.active {
+        color: var(--gold);
+        background: var(--panel);
+        border-bottom: 2px solid var(--gold);
+      }
+      .shop-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 12px;
+      }
+      .shop-item {
+        background: var(--wall);
+        border: 2px solid var(--border);
+        padding: 8px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+        position: relative;
+      }
+      .shop-item:hover {
+        border-color: var(--gold);
+      }
+      .shop-item.cant-afford {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .si-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 5px;
+      }
+      .si-icon {
+        font-size: 22px;
+      }
+      .si-name {
+        font-size: 10px;
+        color: var(--text);
+        line-height: 1.8;
+      }
+      .si-rar {
+        font-size: 9px;
+      }
+      .si-stats {
+        font-size: 9px;
+        color: var(--green);
+        line-height: 1.9;
+        margin-bottom: 4px;
+      }
+      .si-price {
+        font-size: 11px;
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .si-rdot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+      }
+      .shop-msg {
+        padding: 8px 12px;
+        font-size: 10px;
+        min-height: 22px;
+      }
+      .shop-msg.ok {
+        color: var(--green);
+      }
+      .shop-msg.err {
+        color: var(--red);
+      }
+
+      #helpov .obox {
+        border: 3px solid var(--cyan);
+        min-width: 340px;
+        max-width: 640px;
+        width: 92vw;
+      }
+      .help-header {
+        background: linear-gradient(90deg, #001a1a, #002a2a, #001a1a);
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 3px solid var(--cyan);
+      }
+      .help-header h2 {
+        font-size: 14px;
+        color: var(--cyan);
+      }
+      .help-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border);
+      }
+      .htab {
+        flex: 1;
+        padding: 6px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 9px;
+        cursor: pointer;
+        background: var(--wall);
+        color: var(--dim);
+        border: none;
+        border-right: 1px solid var(--border);
+        transition: all 0.1s;
+      }
+      .htab:last-child {
+        border-right: none;
+      }
+      .htab:hover {
+        color: var(--text);
+      }
+      .htab.active {
+        color: var(--cyan);
+        background: var(--panel);
+      }
+      .help-body {
+        padding: 14px;
+        font-size: 10px;
+        line-height: 2.2;
+        color: var(--text);
+      }
+      .hrow {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 4px;
+        align-items: flex-start;
+      }
+      .hkey {
+        background: #1e1e30;
+        border: 2px solid var(--border);
+        padding: 2px 5px;
+        font-size: 9px;
+        color: var(--cyan);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .hsec {
+        font-size: 11px;
+        color: var(--gold);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 3px;
+        margin: 10px 0 6px;
+      }
+      .htable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9px;
+      }
+      .htable td,
+      .htable th {
+        padding: 3px 5px;
+        border: 1px solid var(--border);
+        line-height: 1.8;
+      }
+      .htable th {
+        color: var(--gold);
+        background: #1a1a2e;
+      }
+      .htable tr:nth-child(even) {
+        background: #0d0d1a;
+      }
+      .rarity-common {
+        color: #aaa;
+      }
+      .rarity-uncommon {
+        color: var(--green);
+      }
+      .rarity-rare {
+        color: var(--blue);
+      }
+      .rarity-epic {
+        color: var(--purple);
+      }
+      .rarity-legendary {
+        color: var(--gold);
+      }
+
+      #save-flash {
+        position: fixed;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--green);
+        color: #000;
+        font-family: "Press Start 2P", monospace;
+        font-size: 10px;
+        padding: 4px 10px;
+        z-index: 300;
+        display: none;
+        pointer-events: none;
+      }
+      #classov {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 110;
+        gap: 14px;
+      }
+      #classov.open {
+        display: flex;
+      }
+      #classov h2 {
+        font-size: 18px;
+        color: var(--gold);
+        text-shadow: 0 0 20px #f5c51866;
+        letter-spacing: 2px;
+      }
+      #classov p {
+        font-size: 10px;
+        color: var(--dim);
+      }
+      #class-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        max-width: 480px;
+        width: 90vw;
+      }
+      .cls-card {
+        background: var(--panel);
+        border: 3px solid var(--border);
+        padding: 14px 12px;
+        cursor: pointer;
+        text-align: center;
+        transition:
+          border-color 0.15s,
+          transform 0.1s;
+        position: relative;
+      }
+      .cls-card:hover {
+        transform: scale(1.04);
+      }
+      .cls-card.selected {
+        border-color: var(--gold);
+      }
+      .cls-icon {
+        font-size: 26px;
+        margin-bottom: 6px;
+      }
+      .cls-name {
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      .cls-tag {
+        font-size: 9px;
+        color: var(--dim);
+        margin-bottom: 6px;
+      }
+      .cls-stats {
+        font-size: 9px;
+        line-height: 2;
+        color: var(--cyan);
+        margin-bottom: 4px;
+      }
+      .cls-skill {
+        font-size: 9px;
+        color: var(--purple);
+        line-height: 1.9;
+      }
+      #btn-startcls {
+        padding: 10px 28px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 12px;
+        cursor: pointer;
+        border: 3px solid var(--gold);
+        background: var(--gold);
+        color: #000;
+        animation: pulse 1s infinite;
+        display: none;
+      }
+      #btn-startcls:hover {
+        background: #fff;
+      }
+
+      @keyframes flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.85;
+        }
+        92% {
+          opacity: 0.6;
+        }
+        94% {
+          opacity: 1;
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes dmgFloat {
+        0% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-44px);
+        }
+      }
+      @keyframes saveFlash {
+        0% {
+          opacity: 1;
+        }
+        80% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      .dfloat {
+        position: fixed;
+        font-size: 16px;
+        font-family: "Press Start 2P", monospace;
+        pointer-events: none;
+        z-index: 190;
+        animation: dmgFloat 0.9s forwards;
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--wall);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="save-flash">💾 SAVED</div>
+
+    <div id="title-screen">
+      <h1>☠ CRYPTS OF ETERNITY ☠</h1>
+      <div id="saved-info"></div>
+      <div class="title-btns">
+        <button class="tbtn primary" id="btn-newgame">▶ NEW GAME</button>
+        <button class="tbtn" id="btn-continue" style="display: none">
+          ↩ CONTINUE
+        </button>
+        <button class="tbtn" id="btn-howto">? HOW TO PLAY</button>
+      </div>
+      <div
+        style="
+          font-size: 9px;
+          color: #333;
+          text-align: center;
+          line-height: 2.8;
+          margin-top: 4px;
+        "
+      >
+        <p>
+          WASD/ARROWS MOVE &nbsp;·&nbsp; SPACE/1-4 SKILLS &nbsp;·&nbsp; E
+          INTERACT
+        </p>
+        <p>∞ DEPTHS · XP PROGRESSION · LOOT · BOSSES · SHOP</p>
+      </div>
+    </div>
+
+    <div id="classov">
+      <h2>⚔ CHOOSE YOUR CLASS ⚔</h2>
+      <p>YOUR FATE IS SEALED BY YOUR BLOODLINE</p>
+      <div id="class-grid"></div>
+      <button id="btn-startcls">▶ BEGIN ADVENTURE</button>
+    </div>
+    <div id="game-ui">
+      <div id="left-panel">
+        <div class="ptitle">— HERO —</div>
+        <div
+          id="hero-icon"
+          style="text-align: center; font-size: 26px; margin: 2px 0"
+        >
+          🧙
+        </div>
+        <div
+          style="text-align: center; font-size: 10px; color: var(--cyan)"
+          id="hero-cls"
+        >
+          MAGE · LV.1
+        </div>
+        <div class="srow">
+          <div class="slabel">
+            <span>❤ HP</span><span id="hp-txt">80/80</span>
+          </div>
+          <div class="barbg">
+            <div class="barfill hpf" id="hp-bar" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="srow">
+          <div class="slabel">
+            <span>✦ MP</span><span id="mp-txt">50/50</span>
+          </div>
+          <div class="barbg">
+            <div class="barfill mpf" id="mp-bar" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="srow">
+          <div class="slabel">
+            <span>★ XP</span><span id="xp-txt">0/100</span>
+          </div>
+          <div class="barbg">
+            <div class="barfill xpf" id="xp-bar" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="sgrid">
+          <div class="sbox" title="Attack">
+            ATK<span class="sv" id="s-atk">8</span>
+          </div>
+          <div class="sbox" title="Defense">
+            DEF<span class="sv" id="s-def">4</span>
+          </div>
+          <div class="sbox" title="Speed">
+            SPD<span class="sv" id="s-spd">5</span>
+          </div>
+          <div class="sbox" title="Luck">
+            LCK<span class="sv" id="s-lck">3</span>
+          </div>
+        </div>
+        <div class="ptitle" style="margin-top: 4px">INVENTORY</div>
+        <!-- Scrollable inventory wrapper -->
+        <div id="inv-scroll">
+          <div id="inv-grid"></div>
+        </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+          "
+        >
+          <div class="ptitle" style="border: none; margin: 0; padding: 0">
+            GOLD
+          </div>
+          <div style="font-size: 15px; color: var(--gold)" id="gold-disp">
+            0
+          </div>
+        </div>
+        <button class="panel-btn shop-btn" id="btn-shop-left">
+          🛒 OPEN SHOP
+        </button>
+        <button
+          class="panel-btn"
+          id="btn-help-left"
+          style="border-color: var(--cyan); color: var(--cyan)"
+        >
+          ? HELP
+        </button>
+      </div>
+
+      <div id="center">
+        <div id="hud-top">
+          <div>
+            <div style="font-size: 12px; color: var(--gold)" id="hud-cls">
+              MAGE
+            </div>
+            <div style="font-size: 10px; color: var(--cyan)" id="hud-lv">
+              LV.1
+            </div>
+          </div>
+          <div style="font-size: 12px; color: var(--red)" id="hud-depth">
+            DEPTH 1
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center">
+            <div style="font-size: 11px; color: var(--gold)" id="hud-gold">
+              💰 0
+            </div>
+            <button
+              class="panel-btn shop-btn"
+              style="margin: 0; padding: 3px 6px; font-size: 9px; width: auto"
+              id="btn-shop-hud"
+            >
+              SHOP
+            </button>
+          </div>
+        </div>
+        <div id="map-wrap">
+          <canvas id="game-canvas"></canvas>
+          <canvas id="mm-canvas" width="84" height="64"></canvas>
+        </div>
+        <div id="hotbar">
+          <div class="hk" id="hk0">
+            <div class="hkname">ATTACK</div>
+            ⚔
+            <div class="hklbl">1</div>
+          </div>
+          <div class="hk" id="hk1">
+            <div class="hkname">FIREBALL</div>
+            🔥
+            <div class="hklbl">2</div>
+          </div>
+          <div class="hk" id="hk2">
+            <div class="hkname">HEAL</div>
+            💊
+            <div class="hklbl">3</div>
+          </div>
+          <div class="hk" id="hk3">
+            <div class="hkname">SHIELD</div>
+            🛡
+            <div class="hklbl">4</div>
+          </div>
+        </div>
+        <div id="hint">
+          <span>WASD/ARROWS MOVE</span><span>SPACE/1-4 SKILLS</span
+          ><span>E INTERACT</span><span>CLICK ENEMY</span
+          ><span>S=SHOP H=HELP</span>
+        </div>
+      </div>
+
+      <div id="right-panel">
+        <div class="ptitle">COMBAT LOG</div>
+        <div id="clog"></div>
+        <div class="ptitle" style="margin-top: 6px">DUNGEON</div>
+        <div style="font-size: 6px; color: var(--dim); line-height: 2.3">
+          <div>
+            DEPTH: <span id="r-depth" style="color: var(--red)">1</span>
+          </div>
+          <div>
+            ENEMIES: <span id="r-enemies" style="color: var(--orange)">0</span>
+          </div>
+          <div>
+            KILLS: <span id="r-kills" style="color: var(--purple)">0</span>
+          </div>
+          <div>BEST: <span id="r-best" style="color: var(--cyan)">1</span></div>
+        </div>
+        <div class="ptitle" style="margin-top: 6px">MAP KEY</div>
+        <div style="font-size: 6px; color: var(--dim); line-height: 2.3">
+          <div><span style="color: #4af">■</span> YOU</div>
+          <div><span style="color: #f44">■</span> ENEMY</div>
+          <div><span style="color: #f00">■</span> BOSS</div>
+          <div><span style="color: #fa0">■</span> CHEST</div>
+          <div><span style="color: #ff0">■</span> STAIRS ↓</div>
+          <div><span style="color: #4f4">■</span> PICKUP</div>
+        </div>
+        <div class="ptitle" style="margin-top: 6px">STATUS</div>
+        <div
+          id="r-status"
+          style="font-size: 6px; color: var(--cyan); line-height: 2"
+        >
+          NONE
+        </div>
+        <div class="ptitle" style="margin-top: 6px">EQUIPPED</div>
+        <div
+          id="r-equipped"
+          style="font-size: 5px; color: var(--dim); line-height: 2.2"
+        >
+          —
+        </div>
+      </div>
+    </div>
+
+    <div id="tip">
+      <div class="tipn" id="tip-n"></div>
+      <div class="tipt" id="tip-t"></div>
+      <div class="tips" id="tip-s"></div>
+      <div class="tipd" id="tip-d"></div>
+    </div>
+
+    <div class="overlay" id="ipop">
+      <div
+        class="obox"
+        style="
+          border: 3px solid var(--gold);
+          min-width: 220px;
+          position: relative;
+        "
+      >
+        <div class="obox-inner">
+          <h3 id="pop-title"></h3>
+          <p id="pop-stats"></p>
+          <p
+            id="pop-desc"
+            style="color: var(--dim); font-size: 9px; margin-top: 4px"
+          ></p>
+          <div id="pbtns">
+            <button class="pb pbg" id="pb-eq">EQUIP</button>
+            <button class="pb" id="pb-use">USE</button>
+            <button
+              class="pb"
+              id="pb-sell"
+              style="border-color: var(--gold); color: var(--gold)"
+            >
+              💰 SELL
+            </button>
+            <button class="pb pbr" id="pb-drop">DROP</button>
+            <button class="pb" id="pb-close">✕ CLOSE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="luov">
+      <div
+        class="obox"
+        style="border: 4px solid var(--gold); text-align: center"
+      >
+        <div class="obox-inner">
+          <h2
+            style="
+              font-size: 13px;
+              color: var(--gold);
+              margin-bottom: 8px;
+              text-shadow: 0 0 20px var(--gold);
+            "
+          >
+            ✨ LEVEL UP! ✨
+          </h2>
+          <p
+            id="lu-msg"
+            style="font-size: 10px; color: var(--cyan); margin-bottom: 12px"
+          >
+            CHOOSE A BONUS
+          </p>
+          <div id="sc-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="goov" style="background: rgba(0, 0, 0, 0.92)">
+      <div
+        class="obox"
+        style="background: transparent; border: none; text-align: center"
+      >
+        <h2
+          style="
+            font-size: 22px;
+            color: var(--red);
+            text-shadow: 0 0 30px var(--red);
+            margin-bottom: 12px;
+            animation: flicker 2s infinite;
+          "
+        >
+          ☠ YOU DIED ☠
+        </h2>
+        <p
+          id="go-stats"
+          style="
+            font-size: 10px;
+            color: var(--dim);
+            margin-bottom: 6px;
+            line-height: 2.5;
+          "
+        ></p>
+        <p
+          id="go-gold"
+          style="font-size: 13px; color: var(--gold); margin-bottom: 14px"
+        ></p>
+        <div class="go-btns">
+          <button id="go-continue" class="gbr">↩ TRY AGAIN</button>
+          <button id="go-menu">⌂ MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="overlay"
+      id="dtov"
+      style="background: #000; flex-direction: column; gap: 14px"
+    >
+      <h2
+        id="dt-h"
+        style="
+          font-size: 14px;
+          color: var(--gold);
+          animation: flicker 1s infinite;
+        "
+      >
+        DESCENDING...
+      </h2>
+      <p id="dt-p" style="font-size: 11px; color: var(--dim)">
+        DEEPER INTO THE ABYSS
+      </p>
+    </div>
+
+    <div class="overlay" id="shopov">
+      <div class="obox">
+        <div class="shop-header">
+          <h2>🛒 THE DARK MERCHANT</h2>
+          <div>
+            <div class="shop-gold" id="shop-gold-disp">💰 0</div>
+            <button class="oclose" id="shop-close">✕</button>
+          </div>
+        </div>
+        <div class="shop-tabs">
+          <button class="stab active" data-tab="weapons">⚔ WEAPONS</button>
+          <button class="stab" data-tab="armor">🛡 ARMOR</button>
+          <button class="stab" data-tab="acc">💍 ACCYS</button>
+          <button class="stab" data-tab="potions">🧪 POTIONS</button>
+          <button class="stab" data-tab="upgrades">⬆ UPGRADES</button>
+        </div>
+        <div class="shop-msg" id="shop-msg"></div>
+        <div class="shop-grid" id="shop-grid"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="helpov">
+      <div class="obox">
+        <div class="help-header">
+          <h2>? HOW TO PLAY</h2>
+          <button class="oclose" id="help-close">✕</button>
+        </div>
+        <div class="help-tabs">
+          <button class="htab active" data-htab="controls">CONTROLS</button>
+          <button class="htab" data-htab="combat">COMBAT</button>
+          <button class="htab" data-htab="stats">STATS</button>
+          <button class="htab" data-htab="items">ITEMS</button>
+          <button class="htab" data-htab="dungeon">DUNGEON</button>
+        </div>
+        <div class="help-body" id="help-body"></div>
+      </div>
+    </div>
+
+    <script>
+      const TILE = 28,
+        MW = 42,
+        MH = 32;
+      const T = { VOID: 0, WALL: 1, FLOOR: 2, STAIRS: 3, CHEST: 4, PICK: 5 };
+      const RC = {
+        common: "#aaa",
+        uncommon: "#3ecf4a",
+        rare: "#4a9eff",
+        epic: "#a855f7",
+        legendary: "#f5c518",
+      };
+      const SAVE_KEY = "crypts_save_v3";
+
+      const ITEMS = [
+        {
+          id: "rsword",
+          name: "Rusty Sword",
+          icon: "🗡",
+          type: "weapon",
+          rar: "common",
+          atk: 3,
+          desc: "A corroded blade — better than fists.",
+          d: 1,
+          price: 20,
+        },
+        {
+          id: "isword",
+          name: "Iron Sword",
+          icon: "⚔",
+          type: "weapon",
+          rar: "common",
+          atk: 7,
+          desc: "Reliable iron forged in a city smithy.",
+          d: 1,
+          price: 50,
+        },
+        {
+          id: "sblade",
+          name: "Silver Blade",
+          icon: "🔪",
+          type: "weapon",
+          rar: "uncommon",
+          atk: 12,
+          desc: "Hums faintly. Effective vs undead.",
+          d: 2,
+          price: 120,
+        },
+        {
+          id: "fsword",
+          name: "Flame Sword",
+          icon: "🔥",
+          type: "weapon",
+          rar: "rare",
+          atk: 18,
+          desc: "Wreathed in fire. Burns on contact.",
+          d: 4,
+          price: 280,
+        },
+        {
+          id: "saxe",
+          name: "Storm Axe",
+          icon: "🪓",
+          type: "weapon",
+          rar: "epic",
+          atk: 26,
+          desc: "Crackles with lightning on each swing.",
+          d: 6,
+          price: 500,
+        },
+        {
+          id: "dscythe",
+          name: "Death Scythe",
+          icon: "⚰",
+          type: "weapon",
+          rar: "legendary",
+          atk: 38,
+          def: 5,
+          desc: "Ancient. Reaps souls with each cut.",
+          d: 8,
+          price: 1200,
+        },
+        {
+          id: "lvest",
+          name: "Leather Vest",
+          icon: "🥋",
+          type: "armor",
+          rar: "common",
+          def: 4,
+          desc: "Stitched hide. Flexible and cheap.",
+          d: 1,
+          price: 30,
+        },
+        {
+          id: "cmail",
+          name: "Chain Mail",
+          icon: "🛡",
+          type: "armor",
+          rar: "uncommon",
+          def: 9,
+          desc: "Interlocked iron rings. Decent cover.",
+          d: 2,
+          price: 140,
+        },
+        {
+          id: "parmor",
+          name: "Plate Armor",
+          icon: "🦺",
+          type: "armor",
+          rar: "rare",
+          def: 16,
+          desc: "Heavy plate. Slows you, but you live.",
+          d: 4,
+          price: 300,
+        },
+        {
+          id: "scloak",
+          name: "Shadow Cloak",
+          icon: "🧥",
+          type: "armor",
+          rar: "epic",
+          def: 12,
+          lck: 6,
+          desc: "Blends with darkness. Lucky wearer.",
+          d: 5,
+          price: 460,
+        },
+        {
+          id: "dscale",
+          name: "Dragon Scale",
+          icon: "🐉",
+          type: "armor",
+          rar: "legendary",
+          def: 25,
+          atk: 5,
+          desc: "Scales of an ancient dragon lord.",
+          d: 9,
+          price: 1400,
+        },
+        {
+          id: "rstr",
+          name: "Ring of Strength",
+          icon: "💍",
+          type: "acc",
+          rar: "uncommon",
+          atk: 5,
+          desc: "Pulsing warmth in your sword hand.",
+          d: 2,
+          price: 100,
+        },
+        {
+          id: "lamulet",
+          name: "Lucky Amulet",
+          icon: "📿",
+          type: "acc",
+          rar: "uncommon",
+          lck: 8,
+          desc: "A worn charm. Fortune follows you.",
+          d: 1,
+          price: 90,
+        },
+        {
+          id: "sboots",
+          name: "Speed Boots",
+          icon: "👟",
+          type: "acc",
+          rar: "rare",
+          spd: 7,
+          desc: "Your feet blur as you run.",
+          d: 3,
+          price: 200,
+        },
+        {
+          id: "mcrown",
+          name: "Mage's Crown",
+          icon: "👑",
+          type: "acc",
+          rar: "epic",
+          atk: 10,
+          maxMp: 20,
+          desc: "Amplifies spellcasting power greatly.",
+          d: 7,
+          price: 600,
+        },
+        {
+          id: "vring",
+          name: "Vampire Ring",
+          icon: "💢",
+          type: "acc",
+          rar: "rare",
+          atk: 4,
+          lck: 4,
+          desc: "Drains minor life on each hit.",
+          d: 4,
+          price: 250,
+        },
+        {
+          id: "hpsm",
+          name: "HP Potion",
+          icon: "🧪",
+          type: "potion",
+          rar: "common",
+          healHp: 30,
+          desc: "A small red vial. Restores 30 HP.",
+          d: 1,
+          price: 25,
+        },
+        {
+          id: "hplg",
+          name: "Big HP Potion",
+          icon: "🍷",
+          type: "potion",
+          rar: "uncommon",
+          healHp: 80,
+          desc: "A large red flask. Restores 80 HP.",
+          d: 3,
+          price: 70,
+        },
+        {
+          id: "mpot",
+          name: "Mana Potion",
+          icon: "💧",
+          type: "potion",
+          rar: "common",
+          healMp: 25,
+          desc: "A blue vial. Restores 25 MP.",
+          d: 1,
+          price: 25,
+        },
+        {
+          id: "elix",
+          name: "Full Elixir",
+          icon: "✨",
+          type: "potion",
+          rar: "rare",
+          healHp: 150,
+          healMp: 50,
+          desc: "Shimmering gold. Full restore.",
+          d: 5,
+          price: 160,
+        },
+        {
+          id: "stome",
+          name: "Tome of Strength",
+          icon: "📖",
+          type: "potion",
+          rar: "epic",
+          atk: 3,
+          desc: "Permanently raises ATK by 3.",
+          d: 4,
+          price: 400,
+          perm: true,
+        },
+        {
+          id: "dtome",
+          name: "Tome of Defense",
+          icon: "📕",
+          type: "potion",
+          rar: "epic",
+          def: 3,
+          desc: "Permanently raises DEF by 3.",
+          d: 4,
+          price: 400,
+          perm: true,
+        },
+        {
+          id: "ltome",
+          name: "Tome of Fortune",
+          icon: "📗",
+          type: "potion",
+          rar: "epic",
+          lck: 5,
+          desc: "Permanently raises LCK by 5.",
+          d: 4,
+          price: 380,
+          perm: true,
+        },
+      ];
+
+      const UPGRADES = [
+        {
+          id: "up_hp",
+          name: "Max HP +20",
+          icon: "❤",
+          desc: "Permanently increase max HP by 20.",
+          price: 80,
+          apply: (p) => {
+            p.mhp += 20;
+            p.hp = Math.min(p.mhp, p.hp + 20);
+          },
+        },
+        {
+          id: "up_mp",
+          name: "Max MP +15",
+          icon: "✦",
+          desc: "Permanently increase max MP by 15.",
+          price: 70,
+          apply: (p) => {
+            p.mmp += 15;
+            p.mp = Math.min(p.mmp, p.mp + 15);
+          },
+        },
+        {
+          id: "up_atk",
+          name: "ATK +2",
+          icon: "⚔",
+          desc: "Permanently increase base ATK by 2.",
+          price: 100,
+          apply: (p) => {
+            p.atk += 2;
+          },
+        },
+        {
+          id: "up_def",
+          name: "DEF +2",
+          icon: "🛡",
+          desc: "Permanently increase base DEF by 2.",
+          price: 100,
+          apply: (p) => {
+            p.def += 2;
+          },
+        },
+        {
+          id: "up_lck",
+          name: "LCK +3",
+          icon: "🍀",
+          desc: "Permanently increase LCK by 3.",
+          price: 90,
+          apply: (p) => {
+            p.lck += 3;
+          },
+        },
+        {
+          id: "up_spd",
+          name: "SPD +1",
+          icon: "💨",
+          desc: "Increase SPD by 1.",
+          price: 120,
+          apply: (p) => {
+            p.spd += 1;
+          },
+        },
+        {
+          id: "up_inv",
+          name: "Inventory +4",
+          icon: "🎒",
+          desc: "Expand inventory by 4 more slots.",
+          price: 150,
+          apply: (p) => {
+            p.invSize += 4;
+          },
+        },
+        {
+          id: "up_mp2",
+          name: "MP Regen +1",
+          icon: "💠",
+          desc: "Regenerate 1 extra MP per turn.",
+          price: 180,
+          apply: (p) => {
+            p.mpRegen += 1;
+          },
+        },
+      ];
+
+      const CLASSES = {
+        mage: {
+          name: "MAGE",
+          icon: "🧙",
+          color: "var(--blue)",
+          tag: "Glass cannon · High magic damage",
+          stats: {
+            hp: 80,
+            mhp: 80,
+            mp: 60,
+            mmp: 60,
+            atk: 8,
+            def: 4,
+            spd: 5,
+            lck: 3,
+            mpRegen: 2,
+          },
+          skills: [
+            { name: "Attack", ic: "⚔", mp: 0, cd: 0, cl: 0, fn: "skAtk" },
+            { name: "Fireball", ic: "🔥", mp: 10, cd: 3, cl: 0, fn: "skFire" },
+            { name: "Heal", ic: "💊", mp: 15, cd: 4, cl: 0, fn: "skHeal" },
+            { name: "Shield", ic: "🛡", mp: 20, cd: 6, cl: 0, fn: "skShield" },
+          ],
+          statLine: "HP:80 MP:60 ATK:8 DEF:4 SPD:5 LCK:3",
+          skillLine: "Fireball · Heal · Shield",
+        },
+        brawler: {
+          name: "BRAWLER",
+          icon: "🥊",
+          color: "var(--orange)",
+          tag: "High ATK · Low MP",
+          stats: {
+            hp: 100,
+            mhp: 100,
+            mp: 25,
+            mmp: 25,
+            atk: 14,
+            def: 6,
+            spd: 7,
+            lck: 5,
+            mpRegen: 1,
+          },
+          skills: [
+            { name: "Attack", ic: "⚔", mp: 0, cd: 0, cl: 0, fn: "skAtk" },
+            { name: "Slam", ic: "💥", mp: 8, cd: 2, cl: 0, fn: "skSlam" },
+            { name: "Rage", ic: "😤", mp: 12, cd: 5, cl: 0, fn: "skRage" },
+            { name: "Dash", ic: "💨", mp: 6, cd: 3, cl: 0, fn: "skDash" },
+          ],
+          statLine: "HP:100 MP:25 ATK:14 DEF:6 SPD:7 LCK:5",
+          skillLine: "Slam · Rage · Dash",
+        },
+        warlock: {
+          name: "WARLOCK",
+          icon: "🧿",
+          color: "var(--purple)",
+          tag: "Life drain · Debuffs",
+          stats: {
+            hp: 70,
+            mhp: 70,
+            mp: 80,
+            mmp: 80,
+            atk: 10,
+            def: 3,
+            spd: 4,
+            lck: 7,
+            mpRegen: 3,
+          },
+          skills: [
+            { name: "Attack", ic: "⚔", mp: 0, cd: 0, cl: 0, fn: "skAtk" },
+            {
+              name: "Soul Drain",
+              ic: "🩸",
+              mp: 12,
+              cd: 3,
+              cl: 0,
+              fn: "skDrain",
+            },
+            { name: "Hex", ic: "💀", mp: 18, cd: 5, cl: 0, fn: "skHex" },
+            { name: "Dark Nova", ic: "🌑", mp: 30, cd: 7, cl: 0, fn: "skNova" },
+          ],
+          statLine: "HP:70 MP:80 ATK:10 DEF:3 SPD:4 LCK:7",
+          skillLine: "Soul Drain · Hex · Dark Nova",
+        },
+        tank: {
+          name: "TANK",
+          icon: "🛡",
+          color: "var(--green)",
+          tag: "High DEF · Sustain",
+          stats: {
+            hp: 140,
+            mhp: 140,
+            mp: 30,
+            mmp: 30,
+            atk: 6,
+            def: 14,
+            spd: 3,
+            lck: 2,
+            mpRegen: 1,
+          },
+          skills: [
+            { name: "Attack", ic: "⚔", mp: 0, cd: 0, cl: 0, fn: "skAtk" },
+            { name: "Taunt", ic: "😠", mp: 8, cd: 4, cl: 0, fn: "skTaunt" },
+            {
+              name: "Fortify",
+              ic: "🏰",
+              mp: 15,
+              cd: 5,
+              cl: 0,
+              fn: "skFortify",
+            },
+            { name: "Smash", ic: "🔨", mp: 10, cd: 3, cl: 0, fn: "skSmash" },
+          ],
+          statLine: "HP:140 MP:30 ATK:6 DEF:14 SPD:3 LCK:2",
+          skillLine: "Taunt · Fortify · Smash",
+        },
+      };
+
+      const ENMDB = [
+        {
+          id: "slime",
+          name: "Slime",
+          col: "#44ff44",
+          sh: "circle",
+          hp: 15,
+          atk: 4,
+          def: 0,
+          xp: 10,
+          gold: [1, 5],
+          mn: 1,
+          mx: Infinity,
+          spd: 3,
+        },
+        {
+          id: "gob",
+          name: "Goblin",
+          col: "#ff8844",
+          sh: "box",
+          hp: 28,
+          atk: 7,
+          def: 2,
+          xp: 18,
+          gold: [2, 8],
+          mn: 1,
+          mx: Infinity,
+          spd: 2,
+        },
+        {
+          id: "skel",
+          name: "Skeleton",
+          col: "#dddddd",
+          sh: "box",
+          hp: 38,
+          atk: 10,
+          def: 4,
+          xp: 25,
+          gold: [3, 12],
+          mn: 2,
+          mx: Infinity,
+          spd: 3,
+        },
+        {
+          id: "orc",
+          name: "Orc",
+          col: "#228b22",
+          sh: "box",
+          hp: 65,
+          atk: 15,
+          def: 7,
+          xp: 40,
+          gold: [5, 18],
+          mn: 3,
+          mx: Infinity,
+          spd: 3,
+        },
+        {
+          id: "zmb",
+          name: "Zombie",
+          col: "#8fbc8f",
+          sh: "box",
+          hp: 50,
+          atk: 12,
+          def: 3,
+          xp: 32,
+          gold: [4, 15],
+          mn: 3,
+          mx: Infinity,
+          spd: 4,
+        },
+        {
+          id: "vamp",
+          name: "Vampire",
+          col: "#8b0000",
+          sh: "dia",
+          hp: 85,
+          atk: 20,
+          def: 8,
+          xp: 60,
+          gold: [10, 25],
+          mn: 5,
+          mx: Infinity,
+          spd: 2,
+          ls: true,
+        },
+        {
+          id: "demon",
+          name: "Demon",
+          col: "#cc2200",
+          sh: "dia",
+          hp: 110,
+          atk: 24,
+          def: 12,
+          xp: 80,
+          gold: [15, 35],
+          mn: 6,
+          mx: Infinity,
+          spd: 2,
+        },
+        {
+          id: "drag",
+          name: "Dragon",
+          col: "#ff4400",
+          sh: "dia",
+          hp: 160,
+          atk: 30,
+          def: 15,
+          xp: 120,
+          gold: [20, 50],
+          mn: 8,
+          mx: Infinity,
+          spd: 3,
+        },
+        {
+          id: "bspider",
+          name: "SPIDER QUEEN",
+          col: "#aa00ff",
+          sh: "boss",
+          hp: 150,
+          atk: 18,
+          def: 8,
+          xp: 200,
+          gold: [30, 60],
+          mn: 1,
+          mx: Infinity,
+          boss: true,
+          spd: 2,
+        },
+        {
+          id: "blich",
+          name: "ARCH LICH",
+          col: "#00ccff",
+          sh: "boss",
+          hp: 300,
+          atk: 32,
+          def: 18,
+          xp: 400,
+          gold: [60, 100],
+          mn: 1,
+          mx: Infinity,
+          boss: true,
+          spd: 3,
+        },
+        {
+          id: "blord",
+          name: "DEMON LORD",
+          col: "#ff0000",
+          sh: "boss",
+          hp: 600,
+          atk: 48,
+          def: 28,
+          xp: 800,
+          gold: [100, 200],
+          mn: 1,
+          mx: Infinity,
+          boss: true,
+          spd: 2,
+        },
+      ];
+
+      function saveGame() {
+        if (!alive) return;
+        const data = {
+          depth: G.depth,
+          p: { ...G.p, inv: [...G.p.inv], eq: { ...G.p.eq } },
+          bestDepth: G.bestDepth || 1,
+          totalKills: G.totalKills || 0,
+          ts: Date.now(),
+        };
+        try {
+          const s = JSON.stringify(data);
+          try {
+            localStorage.setItem(SAVE_KEY, s);
+          } catch (e) {
+            sessionStorage.setItem(SAVE_KEY, s);
+          }
+          flashSave();
+        } catch (e) {}
+      }
+      function loadSave() {
+        try {
+          const raw = (() => {
+            try {
+              return localStorage.getItem(SAVE_KEY);
+            } catch (e) {
+              return sessionStorage.getItem(SAVE_KEY);
+            }
+          })();
+          if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return null;
+      }
+      function deleteSave() {
+        try {
+          localStorage.removeItem(SAVE_KEY);
+        } catch (e) {}
+        try {
+          sessionStorage.removeItem(SAVE_KEY);
+        } catch (e) {}
+      }
+      function flashSave() {
+        const el = document.getElementById("save-flash");
+        el.style.display = "block";
+        el.style.animation = "none";
+        el.offsetHeight;
+        el.style.animation = "saveFlash 1.5s forwards";
+        setTimeout(() => (el.style.display = "none"), 1500);
+      }
+
+      let G = {},
+        alive = false;
+
+      function newGame(fromSave = null, chosenClass = "mage") {
+        const cls = CLASSES[chosenClass] || CLASSES.mage;
+        const base = {
+          depth: 1,
+          bestDepth: 1,
+          totalKills: 0,
+          map: [],
+          rooms: [],
+          ents: [],
+          p: {
+            x: 3,
+            y: 3,
+            ...cls.stats,
+            xp: 0,
+            nxp: 100,
+            lv: 1,
+            gold: 0,
+            kills: 0,
+            invSize: 16,
+            inv: [],
+            eq: { weapon: null, armor: null, acc: null },
+            shield: false,
+            shturn: 0,
+            cls: chosenClass,
+          },
+          sk: cls.skills.map((s) => ({ ...s })),
+          cam: { x: 0, y: 0 },
+          turn: 0,
+          selIdx: -1,
+          selItem: null,
+          shopTab: "weapons",
+        };
+        if (fromSave) {
+          const savedCls =
+            fromSave.p && fromSave.p.cls ? fromSave.p.cls : "mage";
+          const sc = CLASSES[savedCls] || CLASSES.mage;
+          G = base;
+          G.depth = fromSave.depth || 1;
+          G.bestDepth = fromSave.bestDepth || 1;
+          G.totalKills = fromSave.totalKills || 0;
+          G.p = { ...base.p, ...fromSave.p };
+          G.p.inv = fromSave.p.inv || [];
+          G.p.eq = fromSave.p.eq || { weapon: null, armor: null, acc: null };
+          G.p.invSize = fromSave.p.invSize || 16;
+          G.p.mpRegen = fromSave.p.mpRegen || 1;
+          G.p.cls = savedCls;
+          G.sk = sc.skills.map((s) => ({ ...s }));
+          addLog("↩ Save loaded! Depth " + G.depth, "lsys");
+        } else {
+          G = base;
+          addLog(`${cls.icon} ${cls.name} enters the crypts...`, "lsys");
+        }
+        alive = true;
+        genDungeon();
+        addLog(`▼ Depth ${G.depth} — find the stairs!`, "lsys");
+        render();
+      }
+
+      function genDungeon() {
+        G.map = Array.from({ length: MH }, () => new Array(MW).fill(T.WALL));
+        G.rooms = [];
+        G.ents = [];
+        const rooms = [];
+        for (let a = 0; a < 100; a++) {
+          const rw = rnd(5, 11),
+            rh = rnd(5, 10),
+            rx = rnd(1, MW - rw - 2),
+            ry = rnd(1, MH - rh - 2);
+          let ok = true;
+          for (const r of rooms)
+            if (
+              rx < r.x + r.w + 2 &&
+              rx + rw > r.x - 2 &&
+              ry < r.y + r.h + 2 &&
+              ry + rh > r.y - 2
+            ) {
+              ok = false;
+              break;
+            }
+          if (ok) {
+            rooms.push({ x: rx, y: ry, w: rw, h: rh });
+            for (let cy = ry; cy < ry + rh; cy++)
+              for (let cx = rx; cx < rx + rw; cx++) G.map[cy][cx] = T.FLOOR;
+          }
+          if (rooms.length >= 12) break;
+        }
+        for (let i = 1; i < rooms.length; i++) {
+          const a = rooms[i - 1],
+            b = rooms[i],
+            ax = ~~(a.x + a.w / 2),
+            ay = ~~(a.y + a.h / 2),
+            bx = ~~(b.x + b.w / 2),
+            by = ~~(b.y + b.h / 2);
+          for (let x = Math.min(ax, bx); x <= Math.max(ax, bx); x++)
+            if (G.map[ay][x] === T.WALL) G.map[ay][x] = T.FLOOR;
+          for (let y = Math.min(ay, by); y <= Math.max(ay, by); y++)
+            if (G.map[y][bx] === T.WALL) G.map[y][bx] = T.FLOOR;
+        }
+        G.rooms = rooms;
+        if (rooms.length) {
+          G.p.x = ~~(rooms[0].x + rooms[0].w / 2);
+          G.p.y = ~~(rooms[0].y + rooms[0].h / 2);
+        }
+        if (rooms.length > 1) {
+          const lr = rooms[rooms.length - 1];
+          G.map[~~(lr.y + lr.h / 2)][~~(lr.x + lr.w / 2)] = T.STAIRS;
+        }
+        const isBoss = G.depth % 3 === 0;
+        for (let ri = 1; ri < rooms.length; ri++) {
+          const rm = rooms[ri],
+            last = ri === rooms.length - 1;
+          const elig = ENMDB.filter(
+            (e) =>
+              e.mn <= G.depth &&
+              e.mx >= G.depth &&
+              (isBoss && last ? !!e.boss : !e.boss),
+          );
+          const ne = isBoss && last ? 1 : rnd(1, 2 + ~~(G.depth / 3));
+          for (let ei = 0; ei < ne && elig.length; ei++) {
+            const et = elig[~~(Math.random() * elig.length)],
+              ex = rnd(rm.x + 1, rm.x + rm.w - 2),
+              ey = rnd(rm.y + 1, rm.y + rm.h - 2);
+            if (!eAt(ex, ey) && !(ex === G.p.x && ey === G.p.y)) {
+              const hs = 1 + (G.depth - 1) * 0.15,
+                as2 = 1 + (G.depth - 1) * 0.12;
+              G.ents.push({
+                type: "enemy",
+                id: et.id,
+                name: et.name,
+                col: et.col,
+                sh: et.sh,
+                x: ex,
+                y: ey,
+                hp: ~~(et.hp * hs),
+                mhp: ~~(et.hp * hs),
+                atk: ~~(et.atk * as2),
+                def: et.def,
+                xp: et.xp,
+                gold: et.gold,
+                boss: !!et.boss,
+                ls: !!et.ls,
+                spd: et.spd,
+                tmr: 0,
+                dead: false,
+              });
+            }
+          }
+          if (!last && Math.random() < 0.35) {
+            const cx = rnd(rm.x + 1, rm.x + rm.w - 2),
+              cy2 = rnd(rm.y + 1, rm.y + rm.h - 2);
+            if (!eAt(cx, cy2) && G.map[cy2][cx] === T.FLOOR) {
+              G.map[cy2][cx] = T.CHEST;
+              G.ents.push({
+                type: "chest",
+                x: cx,
+                y: cy2,
+                opened: false,
+                dead: false,
+              });
+            }
+          }
+          if (Math.random() < 0.45) {
+            const px = rnd(rm.x + 1, rm.x + rm.w - 2),
+              py = rnd(rm.y + 1, rm.y + rm.h - 2);
+            if (!eAt(px, py) && G.map[py][px] === T.FLOOR) {
+              const p2 = ["hpsm", "hpsm", "mpot", "hplg"][
+                ~~(Math.random() * 4)
+              ];
+              G.map[py][px] = T.PICK;
+              G.ents.push({ type: "pick", iid: p2, x: px, y: py, dead: false });
+            }
+          }
+        }
+        camUpdate();
+      }
+      function eAt(x, y) {
+        return G.ents.find((e) => e.x === x && e.y === y && !e.dead);
+      }
+
+      const cv = document.getElementById("game-canvas"),
+        cx2 = cv.getContext("2d");
+      const mm = document.getElementById("mm-canvas"),
+        mc = mm.getContext("2d");
+
+      function resizeCv() {
+        const w = document.getElementById("map-wrap");
+        if (w.clientWidth > 0 && w.clientHeight > 0) {
+          cv.width = w.clientWidth;
+          cv.height = w.clientHeight;
+        }
+      }
+      function camUpdate() {
+        const tw = ~~(cv.width / TILE) || 20,
+          th = ~~(cv.height / TILE) || 14;
+        G.cam.x = Math.max(0, Math.min(MW - tw, G.p.x - ~~(tw / 2)));
+        G.cam.y = Math.max(0, Math.min(MH - th, G.p.y - ~~(th / 2)));
+      }
+
+      function drawAll() {
+        resizeCv();
+        cx2.fillStyle = "#000";
+        cx2.fillRect(0, 0, cv.width, cv.height);
+        const ox = G.cam.x,
+          oy = G.cam.y,
+          tw2 = ~~(cv.width / TILE) + 2,
+          th2 = ~~(cv.height / TILE) + 2;
+        for (let ty = oy; ty < Math.min(MH, oy + th2); ty++)
+          for (let tx = ox; tx < Math.min(MW, ox + tw2); tx++)
+            drawTile(tx, ty, ox, oy);
+        for (const e of G.ents) {
+          if (e.dead || e.type !== "enemy") continue;
+          const sx = (e.x - ox) * TILE,
+            sy = (e.y - oy) * TILE;
+          if (sx > -TILE && sy > -TILE && sx < cv.width && sy < cv.height)
+            drawEnemy(e, sx, sy);
+        }
+        drawPlayer((G.p.x - ox) * TILE, (G.p.y - oy) * TILE);
+        drawMM();
+      }
+
+      function drawTile(tx, ty, ox, oy) {
+        const t = G.map[ty][tx],
+          sx = (tx - ox) * TILE,
+          sy = (ty - oy) * TILE;
+        if (t === T.WALL) {
+          cx2.fillStyle = (~~(tx / 3) + ~~(ty / 3)) % 2 ? "#181828" : "#141422";
+          cx2.fillRect(sx, sy, TILE, TILE);
+          cx2.fillStyle = "#22223a";
+          cx2.fillRect(sx, sy, TILE, 3);
+          cx2.fillStyle = "#1c1c30";
+          for (let b = 0; b < 2; b++) {
+            const bx2 =
+              sx +
+              ((b * ~~(TILE / 2) + (ty % 2 === 0 ? 0 : ~~(TILE / 4))) % TILE);
+            cx2.fillRect(bx2 + 1, sy + 4, ~~(TILE / 2) - 3, TILE - 7);
+          }
+        } else {
+          cx2.fillStyle = (~~(tx / 5) + ~~(ty / 5)) % 2 ? "#0c0c1c" : "#0f0f1f";
+          cx2.fillRect(sx, sy, TILE, TILE);
+          cx2.fillStyle = "#0a0a18";
+          cx2.fillRect(sx, sy, TILE, 1);
+          cx2.fillRect(sx, sy, 1, TILE);
+          if (t === T.STAIRS) {
+            cx2.fillStyle = "#f5c51828";
+            cx2.fillRect(sx, sy, TILE, TILE);
+            cx2.fillStyle = "#f5c518";
+            const mid = sx + ~~(TILE / 2);
+            cx2.fillRect(mid - 2, sy + 4, 4, TILE - 10);
+            cx2.fillRect(mid - 7, sy + TILE - 8, 14, 3);
+            cx2.fillRect(mid - 5, sy + TILE - 11, 10, 3);
+          } else if (t === T.CHEST) {
+            const ch = G.ents.find(
+                (e) => e.x === tx && e.y === ty && e.type === "chest",
+              ),
+              op = ch && ch.opened;
+            cx2.fillStyle = op ? "#4a2a0a" : "#c8840a";
+            cx2.fillRect(sx + 4, sy + 8, TILE - 8, TILE - 14);
+            cx2.fillStyle = op ? "#3a2a0a" : "#f5c518";
+            cx2.fillRect(sx + 4, sy + 6, TILE - 8, 5);
+            if (!op) {
+              cx2.fillStyle = "#8b5e0a";
+              cx2.fillRect(sx + ~~(TILE / 2) - 2, sy + 9, 4, 3);
+            }
+          } else if (t === T.PICK) {
+            const pu = G.ents.find(
+                (e) => e.x === tx && e.y === ty && e.type === "pick",
+              ),
+              it = pu ? ITEMS.find((i) => i.id === pu.iid) : null;
+            if (it) {
+              cx2.fillStyle = (RC[it.rar] || "#aaa") + "33";
+              cx2.fillRect(sx, sy, TILE, TILE);
+              cx2.fillStyle =
+                it.type === "potion"
+                  ? it.healMp
+                    ? "#4a9eff"
+                    : "#e84040"
+                  : RC[it.rar] || "#aaa";
+              cx2.fillRect(sx + 9, sy + 5, TILE - 18, TILE - 10);
+              cx2.fillRect(sx + 11, sy + 3, TILE - 22, 4);
+            }
+          }
+        }
+      }
+
+      function drawEnemy(e, sx, sy) {
+        cx2.fillStyle = "rgba(0,0,0,0.3)";
+        cx2.beginPath();
+        cx2.ellipse(
+          sx + ~~(TILE / 2),
+          sy + TILE - 3,
+          ~~(TILE / 3),
+          3,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        cx2.fill();
+        if (e.boss) {
+          cx2.shadowColor = e.col;
+          cx2.shadowBlur = 10 + 5 * Math.sin(Date.now() / 300);
+        }
+        cx2.fillStyle = e.col;
+        if (e.sh === "circle") {
+          cx2.beginPath();
+          cx2.arc(
+            sx + ~~(TILE / 2),
+            sy + ~~(TILE / 2),
+            ~~(TILE / 2) - 4,
+            0,
+            Math.PI * 2,
+          );
+          cx2.fill();
+          cx2.fillStyle = "#000";
+          cx2.fillRect(sx + 7, sy + 9, 3, 3);
+          cx2.fillRect(sx + TILE - 10, sy + 9, 3, 3);
+        } else if (e.sh === "dia") {
+          cx2.beginPath();
+          cx2.moveTo(sx + ~~(TILE / 2), sy + 3);
+          cx2.lineTo(sx + TILE - 3, sy + ~~(TILE / 2));
+          cx2.lineTo(sx + ~~(TILE / 2), sy + TILE - 3);
+          cx2.lineTo(sx + 3, sy + ~~(TILE / 2));
+          cx2.closePath();
+          cx2.fill();
+        } else if (e.sh === "boss") {
+          cx2.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 - Math.PI / 2,
+              r = i % 2 ? ~~(TILE / 2) - 8 : ~~(TILE / 2) - 2,
+              bx2 = sx + ~~(TILE / 2) + Math.cos(a) * r,
+              by2 = sy + ~~(TILE / 2) + Math.sin(a) * r;
+            i ? cx2.lineTo(bx2, by2) : cx2.moveTo(bx2, by2);
+          }
+          cx2.closePath();
+          cx2.fill();
+          cx2.fillStyle = "rgba(255,255,255,0.2)";
+          cx2.beginPath();
+          cx2.arc(
+            sx + ~~(TILE / 2),
+            sy + ~~(TILE / 2),
+            ~~(TILE / 2) - 7,
+            0,
+            Math.PI * 2,
+          );
+          cx2.fill();
+        } else {
+          cx2.fillRect(sx + 5, sy + 4, TILE - 10, TILE - 8);
+          cx2.fillStyle = "rgba(0,0,0,0.35)";
+          cx2.fillRect(sx + 7, sy + 10, TILE - 14, TILE - 18);
+          cx2.fillStyle = "#ff0";
+          cx2.fillRect(sx + 7, sy + 7, 3, 3);
+          cx2.fillRect(sx + TILE - 10, sy + 7, 3, 3);
+        }
+        cx2.shadowBlur = 0;
+        const hpPct = e.hp / e.mhp;
+        cx2.fillStyle = "#300";
+        cx2.fillRect(sx + 2, sy + TILE - 5, TILE - 4, 4);
+        cx2.fillStyle =
+          hpPct > 0.5 ? "#3ecf4a" : hpPct > 0.25 ? "#f5c518" : "#e84040";
+        cx2.fillRect(
+          sx + 2,
+          sy + TILE - 5,
+          Math.max(0, ~~((TILE - 4) * hpPct)),
+          4,
+        );
+      }
+
+      function drawPlayer(px, py) {
+        if (G.p.shield) {
+          cx2.strokeStyle = "#4a9eff";
+          cx2.lineWidth = 2;
+          cx2.beginPath();
+          cx2.arc(
+            px + ~~(TILE / 2),
+            py + ~~(TILE / 2),
+            ~~(TILE / 2) + 5,
+            0,
+            Math.PI * 2,
+          );
+          cx2.stroke();
+        }
+        cx2.fillStyle = "rgba(0,0,0,0.35)";
+        cx2.beginPath();
+        cx2.ellipse(
+          px + ~~(TILE / 2),
+          py + TILE - 3,
+          ~~(TILE / 3),
+          3,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        cx2.fill();
+        cx2.fillStyle = "#2255aa";
+        cx2.fillRect(px + 4, py + 10, TILE - 8, TILE - 12);
+        cx2.fillStyle = "#ffddaa";
+        cx2.fillRect(px + 8, py + 3, TILE - 16, 9);
+        cx2.fillStyle = "#334488";
+        cx2.fillRect(px + 6, py + 1, TILE - 12, 4);
+        cx2.fillRect(px + 10, py - 3, TILE - 20, 5);
+        cx2.fillStyle = "#fff";
+        cx2.fillRect(px + 9, py + 5, 3, 3);
+        cx2.fillRect(px + TILE - 12, py + 5, 3, 3);
+        cx2.fillStyle = "#000";
+        cx2.fillRect(px + 10, py + 6, 2, 2);
+        cx2.fillRect(px + TILE - 11, py + 6, 2, 2);
+        cx2.fillStyle = "#c8a060";
+        cx2.fillRect(px + TILE - 6, py + 8, 3, TILE - 14);
+        cx2.fillStyle = "#4af";
+        cx2.fillRect(px + TILE - 7, py + 6, 5, 5);
+      }
+
+      function drawMM() {
+        const sw = mm.width / MW,
+          sh = mm.height / MH;
+        mc.fillStyle = "#000";
+        mc.fillRect(0, 0, mm.width, mm.height);
+        for (let y = 0; y < MH; y++)
+          for (let x = 0; x < MW; x++) {
+            const t = G.map[y][x];
+            mc.fillStyle =
+              t === T.WALL
+                ? "#1a1a2e"
+                : t === T.FLOOR
+                  ? "#2a2a4a"
+                  : t === T.STAIRS
+                    ? "#ffff00"
+                    : t === T.CHEST
+                      ? "#f5a000"
+                      : t === T.PICK
+                        ? "#00cc44"
+                        : "#000";
+            if (t !== T.VOID)
+              mc.fillRect(x * sw, y * sh, Math.ceil(sw), Math.ceil(sh));
+          }
+        for (const e of G.ents) {
+          if (e.dead || e.type !== "enemy") continue;
+          mc.fillStyle = e.boss ? "#ff0000" : "#ff5555";
+          mc.fillRect(
+            e.x * sw - 0.5,
+            e.y * sh - 0.5,
+            Math.ceil(sw) + 1,
+            Math.ceil(sh) + 1,
+          );
+        }
+        mc.fillStyle = "#fff";
+        mc.fillRect(
+          G.p.x * sw - 1,
+          G.p.y * sh - 1,
+          Math.ceil(sw) + 2,
+          Math.ceil(sh) + 2,
+        );
+      }
+
+      function move(dx, dy) {
+        const nx = G.p.x + dx,
+          ny = G.p.y + dy;
+        if (nx < 0 || ny < 0 || nx >= MW || ny >= MH) return;
+        const t = G.map[ny][nx];
+        if (t === T.WALL) return;
+        const ent = eAt(nx, ny);
+        if (ent) {
+          if (ent.type === "enemy") {
+            attack(ent);
+            return;
+          }
+          if (ent.type === "chest") {
+            openChest(ent);
+            G.p.x = nx;
+            G.p.y = ny;
+            doTurn();
+            render();
+            return;
+          }
+        }
+        if (t === T.STAIRS) {
+          descend();
+          return;
+        }
+        if (t === T.PICK) {
+          const pu = G.ents.find(
+            (e) => e.x === nx && e.y === ny && e.type === "pick",
+          );
+          if (pu) pickup(pu);
+          G.map[ny][nx] = T.FLOOR;
+        }
+        G.p.x = nx;
+        G.p.y = ny;
+        doTurn();
+        camUpdate();
+        render();
+      }
+
+      function pAtk() {
+        let a = G.p.atk;
+        const wp = G.p.eq.weapon;
+        if (wp) {
+          const i = ITEMS.find((x) => x.id === wp);
+          if (i) a += i.atk || 0;
+        }
+        return a;
+      }
+      function pDef() {
+        let d = G.p.def;
+        const ar = G.p.eq.armor;
+        if (ar) {
+          const i = ITEMS.find((x) => x.id === ar);
+          if (i) d += i.def || 0;
+        }
+        if (G.p.shield) d += 12;
+        return d;
+      }
+
+      function attack(en, mul = 1) {
+        const a = pAtk() * mul,
+          crit = Math.random() < 0.08 + G.p.lck * 0.005;
+        let dmg = Math.max(1, ~~((a * rnd(80, 120)) / 100) - ~~(en.def * 0.5));
+        if (crit) dmg = ~~(dmg * 1.9);
+        en.hp -= dmg;
+        crit
+          ? addLog(`💥 CRIT! ${en.name} takes ${dmg}!`, "ldmg")
+          : addLog(`⚔ You hit ${en.name} for ${dmg}.`, "ldmg");
+        floatDmg(dmg, crit, false);
+        if (en.hp <= 0) killEn(en);
+        else enAtk(en);
+        tickCD();
+      }
+
+      function enAtk(en) {
+        let dmg = Math.max(
+          1,
+          ~~((en.atk * rnd(85, 115)) / 100) - ~~(pDef() * 0.5),
+        );
+        if (en.boss) dmg = ~~(dmg * 1.2);
+        if (en.ls) {
+          const s = ~~(dmg * 0.3);
+          en.hp = Math.min(en.mhp, en.hp + s);
+          addLog(`🩸 ${en.name} leeches ${s}!`, "lwarn");
+        }
+        G.p.hp -= dmg;
+        addLog(`👹 ${en.name} hits you for ${dmg}.`, "lwarn");
+        floatDmg(dmg, false, true);
+        if (G.p.hp <= 0) {
+          G.p.hp = 0;
+          gameOver();
+        }
+      }
+
+      function killEn(en) {
+        en.dead = true;
+        en.hp = 0;
+        G.p.kills++;
+        G.totalKills = (G.totalKills || 0) + 1;
+        const g = rnd(en.gold[0], en.gold[1]);
+        G.p.gold += g;
+        gainXP(en.xp);
+        addLog(`☠ ${en.name} defeated! +${en.xp}XP +${g}💰`, "lxp");
+        if (Math.random() < 0.4 + G.p.lck * 0.008) dropLoot(en.x, en.y);
+        render();
+        saveGame();
+      }
+
+      function gainXP(a) {
+        G.p.xp += a;
+        while (G.p.xp >= G.p.nxp) {
+          G.p.xp -= G.p.nxp;
+          G.p.nxp = ~~(G.p.nxp * 1.55);
+          G.p.lv++;
+          addLog(`✨ LEVEL UP → ${G.p.lv}!`, "lxp");
+          showLU();
+        }
+      }
+
+      function dropLoot(lx, ly) {
+        const el = ITEMS.filter((i) => i.d <= G.depth);
+        if (!el.length) return;
+        const r = Math.random();
+        let pool =
+          r > 0.98
+            ? el.filter((i) => i.rar === "legendary")
+            : r > 0.92
+              ? el.filter((i) => i.rar === "epic")
+              : r > 0.78
+                ? el.filter((i) => i.rar === "rare")
+                : r > 0.55
+                  ? el.filter((i) => i.rar === "uncommon")
+                  : el.filter((i) => i.rar === "common");
+        if (!pool.length) pool = el;
+        const it = pool[~~(Math.random() * pool.length)];
+        G.ents.push({ type: "pick", iid: it.id, x: lx, y: ly, dead: false });
+        G.map[ly][lx] = T.PICK;
+        addLog(`💎 ${it.name} dropped!`, "litem");
+      }
+
+      function useSkill(i) {
+        const sk = G.sk[i];
+        if (sk.cl > 0) {
+          addLog(`⏳ ${sk.name} cooldown ${sk.cl}`, "lwarn");
+          return;
+        }
+        if (G.p.mp < sk.mp) {
+          addLog("❌ Not enough MP!", "lwarn");
+          return;
+        }
+        G.p.mp -= sk.mp;
+        sk.cl = sk.cd;
+        window[sk.fn]();
+        render();
+      }
+      function skAtk() {
+        const e = nearE(1);
+        if (!e) {
+          addLog("No adjacent enemy! Move next to one.", "lsys");
+          return;
+        }
+        attack(e);
+      }
+      function skFire() {
+        const e = nearE(4);
+        if (!e) {
+          addLog("🔥 No targets in range!", "lsys");
+          return;
+        }
+        const d = ~~(pAtk() * 1.8 + 18);
+        e.hp -= d;
+        addLog(`🔥 Fireball: ${e.name} takes ${d}!`, "ldmg");
+        floatDmg(d, true, false);
+        if (e.hp <= 0) killEn(e);
+        tickCD();
+      }
+      function skHeal() {
+        const h = ~~(22 + G.p.lv * 5);
+        G.p.hp = Math.min(G.p.mhp, G.p.hp + h);
+        addLog(`💊 Healed ${h} HP!`, "lheal");
+        tickCD();
+      }
+      function skShield() {
+        G.p.shield = true;
+        G.p.shturn = 4;
+        addLog("🛡 Shield up! +12 DEF for 4 turns.", "lsys");
+        tickCD();
+      }
+      // Brawler skills
+      function skSlam() {
+        const e = nearE(1);
+        if (!e) {
+          addLog("💥 No adjacent enemy!", "lsys");
+          return;
+        }
+        const d = ~~(pAtk() * 2.2);
+        e.hp -= d;
+        addLog(`💥 Slam! ${e.name} takes ${d}!`, "ldmg");
+        floatDmg(d, true, false);
+        if (e.hp <= 0) killEn(e);
+        tickCD();
+      }
+      function skRage() {
+        G.p.atk += 6;
+        G.p.shturn = 3;
+        G.p.shield = false;
+        addLog("😤 RAGE! ATK +6 for 3 turns (then fades).", "lsys");
+        setTimeout(() => {
+          if (alive && G.p.atk > 0) G.p.atk = Math.max(0, G.p.atk - 6);
+        }, 3000);
+        tickCD();
+      }
+      function skDash() {
+        const e = nearE(5);
+        if (!e) {
+          addLog("💨 No target to dash to!", "lsys");
+          return;
+        }
+        const d = ~~(pAtk() * 1.4);
+        e.hp -= d;
+        addLog(`💨 Dash strike! ${e.name} takes ${d}!`, "ldmg");
+        floatDmg(d, false, false);
+        if (e.hp <= 0) killEn(e);
+        tickCD();
+      }
+      // Warlock skills
+      function skDrain() {
+        const e = nearE(3);
+        if (!e) {
+          addLog("🩸 No targets in range!", "lsys");
+          return;
+        }
+        const d = ~~(pAtk() * 1.5 + 10);
+        e.hp -= d;
+        const heal = ~~(d * 0.5);
+        G.p.hp = Math.min(G.p.mhp, G.p.hp + heal);
+        addLog(`🩸 Soul Drain: ${d} to ${e.name}, +${heal} HP!`, "lheal");
+        floatDmg(d, false, false);
+        if (e.hp <= 0) killEn(e);
+        tickCD();
+      }
+      function skHex() {
+        const e = nearE(5);
+        if (!e) {
+          addLog("💀 No targets in range!", "lsys");
+          return;
+        }
+        e.atk = Math.max(1, ~~(e.atk * 0.6));
+        addLog(`💀 Hex! ${e.name} ATK reduced!`, "ldmg");
+        tickCD();
+      }
+      function skNova() {
+        const targets = G.ents.filter(
+          (e) =>
+            e.type === "enemy" &&
+            !e.dead &&
+            Math.abs(e.x - G.p.x) + Math.abs(e.y - G.p.y) <= 4,
+        );
+        if (!targets.length) {
+          addLog("🌑 No enemies nearby!", "lsys");
+          return;
+        }
+        targets.forEach((e) => {
+          const d = ~~(pAtk() * 1.3 + 15);
+          e.hp -= d;
+          addLog(`🌑 Nova hits ${e.name} for ${d}!`, "ldmg");
+          floatDmg(d, true, false);
+          if (e.hp <= 0) killEn(e);
+        });
+        tickCD();
+      }
+      // Tank skills
+      function skTaunt() {
+        addLog("😠 TAUNT! Enemies focus you — DEF +8 this turn.", "lsys");
+        G.p.shield = true;
+        G.p.shturn = 2;
+        tickCD();
+      }
+      function skFortify() {
+        G.p.shield = true;
+        G.p.shturn = 6;
+        addLog("🏰 Fortify! +12 DEF for 6 turns.", "lsys");
+        tickCD();
+      }
+      function skSmash() {
+        const e = nearE(1);
+        if (!e) {
+          addLog("🔨 No adjacent enemy!", "lsys");
+          return;
+        }
+        const d = ~~(pAtk() * 1.6 + G.p.def * 0.5);
+        e.hp -= d;
+        addLog(`🔨 Smash! ${e.name} takes ${d}!`, "ldmg");
+        floatDmg(d, true, false);
+        if (e.hp <= 0) killEn(e);
+        tickCD();
+      }
+      function nearE(r = 2) {
+        const a = G.ents.filter((e) => e.type === "enemy" && !e.dead);
+        if (!a.length) return null;
+        a.sort(
+          (x, y) =>
+            Math.abs(x.x - G.p.x) +
+            Math.abs(x.y - G.p.y) -
+            (Math.abs(y.x - G.p.x) + Math.abs(y.y - G.p.y)),
+        );
+        const n = a[0];
+        return Math.abs(n.x - G.p.x) + Math.abs(n.y - G.p.y) <= r ? n : null;
+      }
+      function tickCD() {
+        for (const s of G.sk) if (s.cl > 0) s.cl--;
+        if (G.p.shturn > 0) {
+          G.p.shturn--;
+          if (G.p.shturn === 0) G.p.shield = false;
+        }
+        G.turn++;
+        if (G.turn % 4 === 0) G.p.mp = Math.min(G.p.mmp, G.p.mp + G.p.mpRegen);
+      }
+
+      function doTurn() {
+        for (const e of G.ents) {
+          if (e.dead || e.type !== "enemy") continue;
+          e.tmr = (e.tmr || 0) + 1;
+          if (e.tmr < e.spd) continue;
+          e.tmr = 0;
+          const d = Math.abs(e.x - G.p.x) + Math.abs(e.y - G.p.y);
+          if (d === 1) {
+            enAtk(e);
+          } else if (d <= 9) {
+            const dx2 = G.p.x - e.x,
+              dy2 = G.p.y - e.y,
+              mv = [];
+            if (dx2) mv.push([Math.sign(dx2), 0]);
+            if (dy2) mv.push([0, Math.sign(dy2)]);
+            if (Math.random() > 0.65 && mv.length > 1) mv.reverse();
+            for (const [mx2, my2] of mv) {
+              const nx = e.x + mx2,
+                ny = e.y + my2;
+              if (nx < 0 || ny < 0 || nx >= MW || ny >= MH) continue;
+              if (G.map[ny][nx] === T.WALL) continue;
+              if (eAt(nx, ny)) continue;
+              e.x = nx;
+              e.y = ny;
+              break;
+            }
+          }
+        }
+      }
+
+      function pickup(pu) {
+        if (G.p.inv.length >= (G.p.invSize || 16)) {
+          addLog("⚠ Inventory full! Drop something first.", "lwarn");
+          return;
+        }
+        const it = ITEMS.find((i) => i.id === pu.iid);
+        if (!it) return;
+        G.p.inv.push({ iid: it.id, ct: 1 });
+        G.ents = G.ents.filter((e) => e !== pu);
+        addLog(`🎒 ${it.name}!`, "litem");
+        autoEq(it);
+        renderInv();
+      }
+      function autoEq(it) {
+        if (it.type === "potion") return;
+        const sl =
+          it.type === "weapon"
+            ? "weapon"
+            : it.type === "armor"
+              ? "armor"
+              : "acc";
+        if (!G.p.eq[sl]) {
+          G.p.eq[sl] = it.id;
+          apSt(it);
+          addLog(`✅ Auto-equipped: ${it.name}`, "litem");
+        }
+      }
+      function apSt(it, rm = false) {
+        const m = rm ? -1 : 1;
+        if (it.atk) G.p.atk += it.atk * m;
+        if (it.def) G.p.def += it.def * m;
+        if (it.spd) G.p.spd += it.spd * m;
+        if (it.lck) G.p.lck += it.lck * m;
+        if (it.maxMp) {
+          G.p.mmp += it.maxMp * m;
+          if (!rm) G.p.mp = Math.min(G.p.mmp, G.p.mp + it.maxMp);
+        }
+      }
+      function openChest(c) {
+        if (c.opened) return;
+        c.opened = true;
+        const g = rnd(10, 30 + G.depth * 5);
+        G.p.gold += g;
+        addLog(`📦 Chest! +${g}💰`, "litem");
+        for (
+          let i = 0;
+          i < rnd(1, 3) && G.p.inv.length < (G.p.invSize || 16);
+          i++
+        ) {
+          const el = ITEMS.filter((it) => it.d <= G.depth);
+          const it = el[~~(Math.random() * el.length)];
+          G.p.inv.push({ iid: it.id, ct: 1 });
+          addLog(`💎 ${it.name} (${it.rar})!`, "litem");
+        }
+        renderInv();
+        saveGame();
+      }
+
+      function descend() {
+        const ov = document.getElementById("dtov");
+        G.depth++;
+        if (G.depth > G.bestDepth) G.bestDepth = G.depth;
+        document.getElementById("dt-h").textContent = `DEPTH ${G.depth}`;
+        const msgs = [
+          "DARKNESS GROWS...",
+          "ANCIENT EVIL STIRS...",
+          "NO TURNING BACK...",
+          "COLD AIR RISES...",
+          "SCREAMS ECHO BELOW...",
+        ];
+        document.getElementById("dt-p").textContent =
+          msgs[~~(Math.random() * msgs.length)];
+        ov.classList.add("open");
+        setTimeout(() => {
+          genDungeon();
+          render();
+          ov.classList.remove("open");
+          addLog(`▼ DEPTH ${G.depth}!`, "lsys");
+          if (G.depth % 3 === 0) {
+            const b = G.ents.find((e) => e.boss);
+            if (b) addLog(`💀 BOSS: ${b.name} lurks here!`, "lwarn");
+          }
+          saveGame();
+        }, 2000);
+      }
+
+      function showLU() {
+        document.getElementById("lu-msg").textContent =
+          `LV.${G.p.lv} — CHOOSE A BONUS:`;
+        const opts = [
+          {
+            i: "❤",
+            n: "VITALITY",
+            d: "+30 HP",
+            f: () => {
+              G.p.mhp += 30;
+              G.p.hp = Math.min(G.p.mhp, G.p.hp + 20);
+            },
+          },
+          {
+            i: "⚔",
+            n: "POWER",
+            d: "+4 ATK",
+            f: () => {
+              G.p.atk += 4;
+            },
+          },
+          {
+            i: "🛡",
+            n: "GUARD",
+            d: "+3 DEF",
+            f: () => {
+              G.p.def += 3;
+            },
+          },
+          {
+            i: "✨",
+            n: "ARCANE",
+            d: "+20 MP +2 ATK",
+            f: () => {
+              G.p.mmp += 20;
+              G.p.atk += 2;
+            },
+          },
+          {
+            i: "🍀",
+            n: "FORTUNE",
+            d: "+6 LUCK",
+            f: () => {
+              G.p.lck += 6;
+            },
+          },
+        ];
+        const picked = shuffle([...opts]).slice(0, 3),
+          sc = document.getElementById("sc-wrap");
+        sc.innerHTML = "";
+        for (const o of picked) {
+          const d = document.createElement("div");
+          d.className = "sc";
+          d.innerHTML = `<div class="sci">${o.i}</div><div class="scn">${o.n}</div><div class="scd">${o.d}</div>`;
+          d.addEventListener("click", () => {
+            o.f();
+            document.getElementById("luov").classList.remove("open");
+            render();
+            saveGame();
+          });
+          sc.appendChild(d);
+        }
+        document.getElementById("luov").classList.add("open");
+      }
+
+      function gameOver() {
+        alive = false;
+        const lost = ~~(G.p.gold * 0.1),
+          kept = G.p.gold - lost;
+        document.getElementById("go-stats").textContent =
+          `DEPTH: ${G.depth}  LEVEL: ${G.p.lv}  KILLS: ${G.p.kills}`;
+        document.getElementById("go-gold").textContent =
+          `💰 KEPT: ${kept} gold  (lost ${lost} — 10% death tax)`;
+        document.getElementById("goov").classList.add("open");
+        (() => {
+          const sv = loadSave() || {},
+            prevGold = sv.p ? sv.p.gold : 0,
+            totalGold = Math.max(prevGold || 0, kept),
+            best = Math.max(sv.bestDepth || 1, G.depth);
+          const saveData = {
+            depth: 1,
+            bestDepth: best,
+            totalKills: (sv.totalKills || 0) + G.p.kills,
+            p: {
+              ...G.p,
+              gold: totalGold,
+              hp: G.p.mhp,
+              mp: G.p.mmp,
+              x: 3,
+              y: 3,
+              kills: 0,
+              inv: [],
+              eq: { weapon: null, armor: null, acc: null },
+              shield: false,
+              shturn: 0,
+            },
+            ts: Date.now(),
+          };
+          try {
+            const s = JSON.stringify(saveData);
+            try {
+              localStorage.setItem(SAVE_KEY, s);
+            } catch (e) {
+              sessionStorage.setItem(SAVE_KEY, s);
+            }
+          } catch (e) {}
+        })();
+      }
+
+      function openShop() {
+        renderShop();
+        document.getElementById("shopov").classList.add("open");
+      }
+      function closeShop() {
+        document.getElementById("shopov").classList.remove("open");
+      }
+
+      function renderShop() {
+        const tab = G.shopTab || "weapons";
+        document
+          .querySelectorAll(".stab")
+          .forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
+        document.getElementById("shop-gold-disp").textContent =
+          `💰 ${G.p.gold}`;
+        const grid = document.getElementById("shop-grid");
+        grid.innerHTML = "";
+        const msg = document.getElementById("shop-msg");
+        msg.textContent = "";
+        msg.className = "shop-msg";
+        if (tab === "upgrades") {
+          for (const u of UPGRADES) {
+            const div = document.createElement("div"),
+              cant = G.p.gold < u.price;
+            div.className = "shop-item" + (cant ? " cant-afford" : "");
+            div.innerHTML = `<div class="si-top"><div class="si-icon">${u.icon}</div><div><div class="si-name">${u.name}</div><div class="si-rar" style="color:var(--purple)">UPGRADE</div></div></div><div class="si-stats">${u.desc}</div><div class="si-price">💰 ${u.price}</div>`;
+            if (!cant) {
+              div.addEventListener("click", () => {
+                if (G.p.gold < u.price) {
+                  showShopMsg("❌ Not enough gold!", true);
+                  return;
+                }
+                G.p.gold -= u.price;
+                u.apply(G.p);
+                showShopMsg(`✅ ${u.name} purchased!`, false);
+                addLog(`🛒 Bought: ${u.name}`, "litem");
+                render();
+                renderShop();
+                saveGame();
+              });
+            }
+            grid.appendChild(div);
+          }
+          return;
+        }
+        const typeMap = {
+            weapons: "weapon",
+            armor: "armor",
+            acc: "acc",
+            potions: "potion",
+          },
+          type = typeMap[tab];
+        const items = ITEMS.filter(
+          (i) => i.type === type && i.d <= Math.max(G.depth, 2),
+        );
+        for (const it of items) {
+          const cant = G.p.gold < it.price,
+            alreadyHave = G.p.inv.some((s) => s.iid === it.id),
+            div = document.createElement("div");
+          div.className = "shop-item" + (cant ? " cant-afford" : "");
+          let stats = "";
+          if (it.atk) stats += `ATK +${it.atk}  `;
+          if (it.def) stats += `DEF +${it.def}  `;
+          if (it.spd) stats += `SPD +${it.spd}  `;
+          if (it.lck) stats += `LCK +${it.lck}  `;
+          if (it.healHp) stats += `+${it.healHp} HP  `;
+          if (it.healMp) stats += `+${it.healMp} MP  `;
+          div.innerHTML = `<div class="si-rdot" style="background:${RC[it.rar] || "#aaa"}"></div><div class="si-top"><div class="si-icon">${it.icon}</div><div><div class="si-name">${it.name}</div><div class="si-rar" style="color:${RC[it.rar] || "#aaa"}">${it.rar.toUpperCase()}</div></div></div><div class="si-stats">${stats || it.desc}</div><div class="si-price">💰 ${it.price} ${alreadyHave ? '<span style="color:var(--dim);font-size:9px">(OWNED)</span>' : ""}</div>`;
+          if (!cant) {
+            div.addEventListener("click", () => buyItem(it));
+          }
+          grid.appendChild(div);
+        }
+      }
+
+      function buyItem(it) {
+        if (G.p.gold < it.price) {
+          showShopMsg("❌ Not enough gold!", true);
+          return;
+        }
+        if (G.p.inv.length >= (G.p.invSize || 16)) {
+          showShopMsg("❌ Inventory full! Drop items first.", true);
+          return;
+        }
+        G.p.gold -= it.price;
+        G.p.inv.push({ iid: it.id, ct: 1 });
+        showShopMsg(`✅ Bought: ${it.name}!`, false);
+        addLog(`🛒 Purchased: ${it.name}`, "litem");
+        if (
+          it.type !== "potion" &&
+          !G.p.eq[
+            it.type === "weapon"
+              ? "weapon"
+              : it.type === "armor"
+                ? "armor"
+                : "acc"
+          ]
+        )
+          autoEq(it);
+        render();
+        renderShop();
+        saveGame();
+      }
+
+      function showShopMsg(msg, isErr) {
+        const el = document.getElementById("shop-msg");
+        el.textContent = msg;
+        el.className = "shop-msg " + (isErr ? "err" : "ok");
+        setTimeout(() => {
+          if (el.textContent === msg) el.textContent = "";
+        }, 2500);
+      }
+
+      document.querySelectorAll(".stab").forEach((t) =>
+        t.addEventListener("click", () => {
+          G.shopTab = t.dataset.tab;
+          renderShop();
+        }),
+      );
+      document
+        .getElementById("shop-close")
+        .addEventListener("click", closeShop);
+      document.getElementById("shopov").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("shopov")) closeShop();
+      });
+      document
+        .getElementById("btn-shop-left")
+        .addEventListener("click", openShop);
+      document
+        .getElementById("btn-shop-hud")
+        .addEventListener("click", openShop);
+
+      const HELP_CONTENT = {
+        controls: `<div class="hsec">MOVEMENT</div><div class="hrow"><div class="hkey">W A S D</div><div>Move your hero up/left/down/right</div></div><div class="hrow"><div class="hkey">↑ ↓ ← →</div><div>Arrow keys also move the hero</div></div><div class="hrow"><div class="hkey">E</div><div>Interact with adjacent chests &amp; objects</div></div><div class="hsec">SKILLS</div><div class="hrow"><div class="hkey">1 / SPACE</div><div>Basic Attack — hit the nearest enemy</div></div><div class="hrow"><div class="hkey">2</div><div>Fireball 🔥 — ranged magic blast, costs 10 MP</div></div><div class="hrow"><div class="hkey">3</div><div>Heal 💊 — restore HP, costs 15 MP</div></div><div class="hrow"><div class="hkey">4</div><div>Shield 🛡 — boost DEF by 12 for 4 turns, costs 20 MP</div></div><div class="hsec">SHORTCUTS</div><div class="hrow"><div class="hkey">H</div><div>Open this help screen</div></div><div class="hrow"><div class="hkey">S / Tab</div><div>Open the shop</div></div>`,
+        combat: `<div class="hsec">HOW COMBAT WORKS</div><p style="font-size:9px;line-height:2;color:var(--dim)">Turn-based. Every move or skill use triggers enemy turns.</p><div class="hsec">DAMAGE FORMULA</div><p style="font-size:9px;line-height:2;color:var(--dim)">DMG = (ATK × random 0.8–1.2) − (Enemy DEF × 0.5). Min 1. Crits deal ×1.9. Crit chance = 8% + LCK×0.5%</p><div class="hsec">ENEMY TYPES</div><table class="htable"><tr><th>Shape</th><th>Type</th><th>Notes</th></tr><tr><td>Green circle</td><td>Slime</td><td>Weak, good for early XP.</td></tr><tr><td>Orange box</td><td>Goblin</td><td>Common, balanced threat.</td></tr><tr><td>White box</td><td>Skeleton</td><td>Higher DEF.</td></tr><tr><td>Green box</td><td>Orc</td><td>Tanky, high ATK.</td></tr><tr><td>Red diamond</td><td>Demon/Vamp</td><td>Vampires steal HP!</td></tr><tr><td>Spiky star</td><td>BOSS</td><td>Massive HP &amp; ATK.</td></tr></table>`,
+        stats: `<div class="hsec">WHAT EACH STAT DOES</div><table class="htable"><tr><th>Stat</th><th>Effect</th></tr><tr><td>❤ HP</td><td>Health pool. 0 = death.</td></tr><tr><td>✦ MP</td><td>Used for skills.</td></tr><tr><td>⚔ ATK</td><td>Base damage.</td></tr><tr><td>🛡 DEF</td><td>Reduces incoming damage.</td></tr><tr><td>💨 SPD</td><td>Enemies act less frequently.</td></tr><tr><td>🍀 LCK</td><td>Better loot &amp; crit chance.</td></tr></table>`,
+        items: `<div class="hsec">ITEM RARITIES</div><table class="htable"><tr><th>Rarity</th><th>Color</th></tr><tr><td class="rarity-common">COMMON</td><td>Grey</td></tr><tr><td class="rarity-uncommon">UNCOMMON</td><td>Green</td></tr><tr><td class="rarity-rare">RARE</td><td>Blue</td></tr><tr><td class="rarity-epic">EPIC</td><td>Purple</td></tr><tr><td class="rarity-legendary">LEGENDARY</td><td>Gold</td></tr></table><div class="hsec">INVENTORY</div><p style="font-size:9px;line-height:2;color:var(--dim)">The inventory scrolls when full. Buy "Inventory +4" from the shop to expand it. Click any item to equip, use, or drop it.</p>`,
+        dungeon: `<div class="hsec">INFINITE DUNGEON</div><p style="font-size:9px;line-height:2;color:var(--dim)">The crypts descend forever. Every 3rd floor is a boss floor.</p><table class="htable"><tr><th>Depth</th><th>Notes</th></tr><tr><td>1–2</td><td>Tutorial zone.</td></tr><tr><td>3, 6, 9...</td><td>Boss floor every 3 depths!</td></tr><tr><td>10+</td><td>All enemies appear, fully scaled.</td></tr><tr><td>∞</td><td>Play forever — enemies scale endlessly.</td></tr></table><div class="hsec">TIPS</div><p style="font-size:9px;line-height:2;color:var(--dim)">• Use Heal (3) between fights.<br>• Save Shield (4) for bosses.<br>• Gold carries over on death (−10%).<br>• Higher LCK = better loot drops.</p>`,
+      };
+
+      let curHTab = "controls";
+      function renderHelp() {
+        document.getElementById("help-body").innerHTML =
+          HELP_CONTENT[curHTab] || "";
+      }
+      document.querySelectorAll(".htab").forEach((t) => {
+        t.addEventListener("click", () => {
+          curHTab = t.dataset.htab;
+          document
+            .querySelectorAll(".htab")
+            .forEach((h) =>
+              h.classList.toggle("active", h.dataset.htab === curHTab),
+            );
+          renderHelp();
+        });
+      });
+      function openHelp() {
+        renderHelp();
+        document.getElementById("helpov").classList.add("open");
+      }
+      function closeHelp() {
+        document.getElementById("helpov").classList.remove("open");
+      }
+      document
+        .getElementById("help-close")
+        .addEventListener("click", closeHelp);
+      document.getElementById("helpov").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("helpov")) closeHelp();
+      });
+      document
+        .getElementById("btn-help-left")
+        .addEventListener("click", openHelp);
+      document.getElementById("btn-howto").addEventListener("click", openHelp);
+
+      function render() {
+        if (!alive) return;
+        const p = G.p;
+        setBar("hp-bar", p.hp, p.mhp);
+        setBar("mp-bar", p.mp, p.mmp);
+        setBar("xp-bar", p.xp, p.nxp);
+        setTxt("hp-txt", `${p.hp}/${p.mhp}`);
+        setTxt("mp-txt", `${p.mp}/${p.mmp}`);
+        setTxt("xp-txt", `${p.xp}/${p.nxp}`);
+        setTxt("s-atk", pAtk());
+        setTxt("s-def", pDef());
+        setTxt("s-spd", p.spd);
+        setTxt("s-lck", p.lck);
+        setTxt(
+          "hero-cls",
+          `${(CLASSES[G.p.cls || "mage"] || CLASSES.mage).name} · LV.${p.lv}`,
+        );
+        setTxt("gold-disp", p.gold);
+        const clsData = CLASSES[G.p.cls || "mage"] || CLASSES.mage;
+        document.getElementById("hero-icon").textContent = clsData.icon;
+        setTxt("hud-cls", clsData.name);
+        setTxt("hud-lv", `LV.${p.lv}`);
+        setTxt("hud-depth", `DEPTH ${G.depth}`);
+        setTxt("hud-gold", `💰 ${p.gold}`);
+        setTxt("r-depth", G.depth);
+        setTxt(
+          "r-enemies",
+          G.ents.filter((e) => e.type === "enemy" && !e.dead).length,
+        );
+        setTxt("r-kills", p.kills);
+        setTxt("r-best", G.bestDepth || 1);
+        setTxt("r-status", p.shield ? `🛡 SHIELD (${p.shturn})` : "NONE");
+        const eqLines = [];
+        if (p.eq.weapon) {
+          const i = ITEMS.find((x) => x.id === p.eq.weapon);
+          if (i) eqLines.push(`⚔ ${i.name}`);
+        }
+        if (p.eq.armor) {
+          const i = ITEMS.find((x) => x.id === p.eq.armor);
+          if (i) eqLines.push(`🛡 ${i.name}`);
+        }
+        if (p.eq.acc) {
+          const i = ITEMS.find((x) => x.id === p.eq.acc);
+          if (i) eqLines.push(`💍 ${i.name}`);
+        }
+        setTxt("r-equipped", eqLines.join("\n") || "— none —");
+        for (let i = 0; i < 4; i++) {
+          const hk = document.getElementById(`hk${i}`),
+            sk = G.sk[i];
+          hk.classList.toggle("oncd", sk.cl > 0);
+          hk.querySelector(".hkname").textContent = sk.name;
+          hk.querySelector(".hklbl").textContent = i + 1;
+          hk.childNodes[1].textContent = sk.ic;
+          let cd = hk.querySelector(".cdov");
+          if (sk.cl > 0) {
+            if (!cd) {
+              cd = document.createElement("div");
+              cd.className = "cdov";
+              hk.appendChild(cd);
+            }
+            cd.textContent = sk.cl;
+          } else if (cd) cd.remove();
+        }
+        renderInv();
+        resizeCv();
+        camUpdate();
+        drawAll();
+      }
+
+      function renderInv() {
+        const g = document.getElementById("inv-grid");
+        g.innerHTML = "";
+        const size = G.p.invSize || 16;
+        for (let i = 0; i < size; i++) {
+          const sl = document.createElement("div"),
+            inv = G.p.inv[i];
+          if (inv) {
+            const it = ITEMS.find((x) => x.id === inv.iid);
+            sl.className = "islot";
+            if (it) {
+              sl.textContent = it.icon;
+              const dot = document.createElement("div");
+              dot.className = "rdot";
+              dot.style.background = RC[it.rar] || "#aaa";
+              sl.appendChild(dot);
+              if (Object.values(G.p.eq).includes(it.id)) sl.classList.add("eq");
+              sl.addEventListener("mouseenter", (e) => showTip(it, e));
+              sl.addEventListener("mouseleave", hideTip);
+              sl.addEventListener("click", () => openPop(i));
+            }
+          } else {
+            sl.className = "islot emp";
+            sl.textContent = "·";
+          }
+          g.appendChild(sl);
+        }
+      }
+
+      function showTip(it, ev) {
+        document.getElementById("tip-n").textContent = `${it.icon} ${it.name}`;
+        document.getElementById("tip-n").style.color = RC[it.rar] || "#aaa";
+        document.getElementById("tip-t").textContent =
+          `[${it.type}] ${it.rar.toUpperCase()}`;
+        let s = "";
+        if (it.atk) s += `ATK +${it.atk}  `;
+        if (it.def) s += `DEF +${it.def}  `;
+        if (it.spd) s += `SPD +${it.spd}  `;
+        if (it.lck) s += `LCK +${it.lck}  `;
+        if (it.healHp) s += `Heals ${it.healHp} HP  `;
+        if (it.healMp) s += `Heals ${it.healMp} MP  `;
+        document.getElementById("tip-s").textContent = s;
+        document.getElementById("tip-d").textContent = it.desc;
+        const t = document.getElementById("tip");
+        t.style.display = "block";
+        t.style.left = `${Math.min(ev.clientX + 14, window.innerWidth - 200)}px`;
+        t.style.top = `${Math.max(ev.clientY - 10, 4)}px`;
+      }
+      function hideTip() {
+        document.getElementById("tip").style.display = "none";
+      }
+
+      function openPop(idx) {
+        G.selIdx = idx;
+        const inv = G.p.inv[idx];
+        if (!inv) return;
+        const it = ITEMS.find((i) => i.id === inv.iid);
+        if (!it) return;
+        G.selItem = it;
+        const t = document.getElementById("pop-title");
+        t.textContent = `${it.icon} ${it.name}`;
+        t.style.color = RC[it.rar] || "#aaa";
+        let s = `[${it.type.toUpperCase()}]  ${it.rar.toUpperCase()}\n`;
+        if (it.atk) s += `⚔ ATK +${it.atk}   `;
+        if (it.def) s += `🛡 DEF +${it.def}   `;
+        if (it.lck) s += `🍀 LCK +${it.lck}   `;
+        if (it.healHp) s += `❤ HEALS ${it.healHp}HP   `;
+        if (it.healMp) s += `✦ HEALS ${it.healMp}MP   `;
+        document.getElementById("pop-stats").textContent = s;
+        document.getElementById("pop-desc").textContent =
+          it.desc + (it.perm ? " [PERMANENT]" : "");
+        const sl =
+            it.type === "weapon"
+              ? "weapon"
+              : it.type === "armor"
+                ? "armor"
+                : it.type === "acc"
+                  ? "acc"
+                  : null,
+          eq2 = sl && G.p.eq[sl] === it.id;
+        document.getElementById("pb-eq").textContent = eq2
+          ? "UNEQUIP"
+          : "EQUIP";
+        document.getElementById("pb-eq").style.display =
+          it.type === "potion" ? "none" : "";
+        document.getElementById("pb-use").style.display =
+          it.type === "potion" ? "" : "none";
+        const sellPrice = ~~(it.price * 0.4);
+        document.getElementById("pb-sell").textContent =
+          `💰 SELL ${sellPrice}g`;
+        document.getElementById("ipop").classList.add("open");
+      }
+      document.getElementById("pb-eq").addEventListener("click", () => {
+        const it = G.selItem;
+        if (!it) return;
+        const sl =
+            it.type === "weapon"
+              ? "weapon"
+              : it.type === "armor"
+                ? "armor"
+                : "acc",
+          eq2 = G.p.eq[sl] === it.id;
+        if (eq2) {
+          G.p.eq[sl] = null;
+          apSt(it, true);
+          addLog(`❌ Unequipped ${it.name}`, "litem");
+        } else {
+          if (G.p.eq[sl]) {
+            const old = ITEMS.find((i) => i.id === G.p.eq[sl]);
+            if (old) apSt(old, true);
+          }
+          G.p.eq[sl] = it.id;
+          apSt(it);
+          addLog(`✅ Equipped ${it.name}`, "litem");
+        }
+        closePop();
+        render();
+        saveGame();
+      });
+      document.getElementById("pb-use").addEventListener("click", () => {
+        const it = G.selItem;
+        if (!it) return;
+        if (it.type === "potion") {
+          if (it.healHp) G.p.hp = Math.min(G.p.mhp, G.p.hp + it.healHp);
+          if (it.healMp) G.p.mp = Math.min(G.p.mmp, G.p.mp + it.healMp);
+          if (it.perm) apSt(it);
+          addLog(`💊 Used ${it.name}`, "lheal");
+          G.p.inv.splice(G.selIdx, 1);
+        }
+        closePop();
+        render();
+        saveGame();
+      });
+      document.getElementById("pb-sell").addEventListener("click", () => {
+        const it = G.selItem;
+        if (!it) return;
+        const sl =
+          it.type === "weapon"
+            ? "weapon"
+            : it.type === "armor"
+              ? "armor"
+              : "acc";
+        if (G.p.eq[sl] === it.id) {
+          G.p.eq[sl] = null;
+          apSt(it, true);
+        }
+        const sellPrice = ~~(it.price * 0.4);
+        G.p.gold += sellPrice;
+        G.p.inv.splice(G.selIdx, 1);
+        addLog(`💰 Sold ${it.name} for ${sellPrice}g`, "litem");
+        closePop();
+        render();
+        saveGame();
+      });
+      document.getElementById("pb-drop").addEventListener("click", () => {
+        const it = G.selItem;
+        if (it) {
+          const sl =
+            it.type === "weapon"
+              ? "weapon"
+              : it.type === "armor"
+                ? "armor"
+                : "acc";
+          if (G.p.eq[sl] === it.id) {
+            G.p.eq[sl] = null;
+            apSt(it, true);
+          }
+        }
+        G.p.inv.splice(G.selIdx, 1);
+        addLog(`🗑 Dropped item`, "lsys");
+        closePop();
+        render();
+      });
+      document.getElementById("pb-close").addEventListener("click", closePop);
+      document.getElementById("ipop").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("ipop")) closePop();
+      });
+      function closePop() {
+        document.getElementById("ipop").classList.remove("open");
+      }
+
+      document.getElementById("go-continue").addEventListener("click", () => {
+        document.getElementById("goov").classList.remove("open");
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            resizeCv();
+            const sv = loadSave();
+            newGame(sv);
+          }),
+        );
+      });
+      document.getElementById("go-menu").addEventListener("click", () => {
+        document.getElementById("goov").classList.remove("open");
+        document.getElementById("game-ui").classList.remove("active");
+        document.getElementById("title-screen").style.display = "flex";
+        alive = false;
+        initTitle();
+      });
+
+      function addLog(msg, cls = "") {
+        const el = document.getElementById("clog"),
+          d = document.createElement("div");
+        d.className = `le ${cls}`;
+        d.textContent = msg;
+        el.appendChild(d);
+        el.scrollTop = el.scrollHeight;
+        if (el.children.length > 80) el.removeChild(el.firstChild);
+      }
+
+      function floatDmg(dmg, crit, isP) {
+        const el = document.createElement("div");
+        el.className = "dfloat";
+        el.textContent = (crit ? "💥" : "") + dmg;
+        el.style.color = isP ? "#e84040" : crit ? "#f5c518" : "#fff";
+        const rect = cv.getBoundingClientRect(),
+          px = (G.p.x - G.cam.x) * TILE + rect.left,
+          py = (G.p.y - G.cam.y) * TILE + rect.top;
+        el.style.left = `${px + rnd(-16, 16)}px`;
+        el.style.top = `${py - 8}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 900);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (!alive) return;
+        if (document.getElementById("ipop").classList.contains("open")) return;
+        if (document.getElementById("luov").classList.contains("open")) return;
+        if (document.getElementById("shopov").classList.contains("open")) {
+          if (e.key === "Escape") closeShop();
+          return;
+        }
+        if (document.getElementById("helpov").classList.contains("open")) {
+          if (e.key === "Escape" || e.key === "h" || e.key === "H") closeHelp();
+          return;
+        }
+        switch (e.key) {
+          case "ArrowUp":
+          case "w":
+          case "W":
+            e.preventDefault();
+            move(0, -1);
+            break;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            e.preventDefault();
+            move(0, 1);
+            break;
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            e.preventDefault();
+            move(-1, 0);
+            break;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            e.preventDefault();
+            move(1, 0);
+            break;
+          case " ":
+            e.preventDefault();
+            useSkill(0);
+            break;
+          case "1":
+            useSkill(0);
+            break;
+          case "2":
+            useSkill(1);
+            break;
+          case "3":
+            useSkill(2);
+            break;
+          case "4":
+            useSkill(3);
+            break;
+          case "e":
+          case "E":
+            [
+              [0, -1],
+              [0, 1],
+              [-1, 0],
+              [1, 0],
+            ].forEach(([dx2, dy2]) => {
+              const t2 = eAt(G.p.x + dx2, G.p.y + dy2);
+              if (t2 && t2.type === "chest" && !t2.opened) openChest(t2);
+            });
+            render();
+            break;
+          case "h":
+          case "H":
+            openHelp();
+            break;
+          case "Tab":
+            e.preventDefault();
+            openShop();
+            break;
+        }
+      });
+
+      cv.addEventListener("click", (e) => {
+        if (!alive) return;
+        const rect = cv.getBoundingClientRect(),
+          tx = ~~((e.clientX - rect.left) / TILE) + G.cam.x,
+          ty2 = ~~((e.clientY - rect.top) / TILE) + G.cam.y;
+        const en = G.ents.find(
+          (x) => x.x === tx && x.y === ty2 && x.type === "enemy" && !x.dead,
+        );
+        if (en) {
+          const d = Math.abs(en.x - G.p.x) + Math.abs(en.y - G.p.y);
+          if (d <= 1) attack(en);
+          else if (d <= 4) useSkill(1);
+          else addLog("Too far! Move closer first.", "lwarn");
+          render();
+        }
+      });
+
+      for (let i = 0; i < 4; i++)
+        document
+          .getElementById(`hk${i}`)
+          .addEventListener("click", () => useSkill(i));
+      window.addEventListener("resize", () => {
+        if (alive) {
+          resizeCv();
+          camUpdate();
+          drawAll();
+        }
+      });
+
+      function initTitle() {
+        const sv = loadSave(),
+          info = document.getElementById("saved-info"),
+          cont = document.getElementById("btn-continue");
+        if (sv && sv.p) {
+          const d = new Date(sv.ts);
+          info.textContent = `💾 SAVE: LV.${sv.p.lv} DEPTH ${sv.depth} · ${sv.p.gold}💰 · ${d.toLocaleDateString()}`;
+          cont.style.display = "";
+          cont.onclick = () => {
+            document.getElementById("title-screen").style.display = "none";
+            document.getElementById("game-ui").classList.add("active");
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                resizeCv();
+                newGame(sv);
+              }),
+            );
+          };
+        } else {
+          info.textContent = "No save found — start a new game!";
+          cont.style.display = "none";
+        }
+      }
+
+      document.getElementById("btn-newgame").addEventListener("click", () => {
+        deleteSave();
+        document.getElementById("title-screen").style.display = "none";
+        initClassPicker();
+      });
+
+      let chosenClass = "mage";
+      function initClassPicker() {
+        chosenClass = null;
+        const grid = document.getElementById("class-grid");
+        grid.innerHTML = "";
+        const btn = document.getElementById("btn-startcls");
+        btn.style.display = "none";
+        btn.textContent = "▶ CONTINUE";
+        document.getElementById("classov").classList.add("open");
+        for (const [key, cls] of Object.entries(CLASSES)) {
+          const card = document.createElement("div");
+          card.className = "cls-card";
+          card.innerHTML = `<div class="cls-icon">${cls.icon}</div><div class="cls-name" style="color:${cls.color}">${cls.name}</div><div class="cls-tag">${cls.tag}</div><div class="cls-stats">${cls.statLine}</div><div class="cls-skill">✦ ${cls.skillLine}</div>`;
+          card.addEventListener("click", () => {
+            chosenClass = key;
+            document.querySelectorAll(".cls-card").forEach((c) => {
+              c.classList.remove("selected");
+              c.style.borderColor = "";
+              c.style.background = "";
+            });
+            card.classList.add("selected");
+            card.style.borderColor = cls.color;
+            card.style.background = cls.color + "18";
+            btn.style.display = "block";
+          });
+          grid.appendChild(card);
+        }
+      }
+      document.getElementById("btn-startcls").addEventListener("click", () => {
+        if (!chosenClass) return;
+        document.getElementById("classov").classList.remove("open");
+        document.getElementById("game-ui").classList.add("active");
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            resizeCv();
+            newGame(null, chosenClass);
+          }),
+        );
+      });
+
+      function rnd(a, b) {
+        return Math.floor(Math.random() * (b - a + 1)) + a;
+      }
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = ~~(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+      function setBar(id, cur, max) {
+        const el = document.getElementById(id);
+        if (el) el.style.width = `${Math.max(0, (cur / max) * 100)}%`;
+      }
+      function setTxt(id, v) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = v;
+      }
+
+      initTitle();
+    </script>
+  </body>
+</html>
